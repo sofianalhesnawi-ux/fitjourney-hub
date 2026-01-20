@@ -13,25 +13,26 @@ import {
   Sun,
   Moon,
   Menu,
-  X
+  X,
+  Globe
 } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const navItems = [
-  { path: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/workouts', label: 'Workouts', icon: Dumbbell },
-  { path: '/nutrition', label: 'Nutrition', icon: Apple },
-  { path: '/metrics', label: 'Body Metrics', icon: Activity },
-  { path: '/goals', label: 'Goals', icon: Target },
-  { path: '/reports', label: 'Reports', icon: BarChart3 },
-  { path: '/settings', label: 'Settings', icon: Settings },
-];
-
 export function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
-  const { theme, setTheme, resolvedTheme } = useFitTrack();
+  const { theme, setTheme, resolvedTheme, t, isRTL, language, setLanguage } = useFitTrack();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const navItems = [
+    { path: '/', label: t.nav.dashboard, icon: LayoutDashboard },
+    { path: '/workouts', label: t.nav.workouts, icon: Dumbbell },
+    { path: '/nutrition', label: t.nav.nutrition, icon: Apple },
+    { path: '/metrics', label: t.nav.bodyMetrics, icon: Activity },
+    { path: '/goals', label: t.nav.goals, icon: Target },
+    { path: '/reports', label: t.nav.reports, icon: BarChart3 },
+    { path: '/settings', label: t.nav.settings, icon: Settings },
+  ];
 
   const toggleTheme = () => {
     if (theme === 'system') {
@@ -41,16 +42,26 @@ export function Layout({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const toggleLanguage = () => {
+    setLanguage(language === 'en' ? 'ar' : 'en');
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:flex lg:w-64 lg:flex-col">
-        <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-sidebar border-r border-sidebar-border px-6 pb-4">
+      <aside className={cn(
+        "hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-64 lg:flex-col",
+        isRTL ? "lg:right-0" : "lg:left-0"
+      )}>
+        <div className={cn(
+          "flex grow flex-col gap-y-5 overflow-y-auto bg-sidebar px-6 pb-4",
+          isRTL ? "border-s border-sidebar-border" : "border-e border-sidebar-border"
+        )}>
           <div className="flex h-16 shrink-0 items-center gap-2">
             <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary">
               <Activity className="w-6 h-6 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold text-sidebar-foreground">FitTrack</span>
+            <span className="text-xl font-bold text-sidebar-foreground">{t.appName}</span>
           </div>
           <nav className="flex flex-1 flex-col">
             <ul className="flex flex-1 flex-col gap-y-1">
@@ -77,7 +88,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 );
               })}
             </ul>
-            <div className="mt-auto pt-4 border-t border-sidebar-border">
+            <div className="mt-auto pt-4 border-t border-sidebar-border space-y-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleLanguage}
+                className="w-full justify-start gap-3 text-sidebar-foreground"
+              >
+                <Globe className="h-5 w-5" />
+                {language === 'en' ? 'العربية' : 'English'}
+              </Button>
               <Button
                 variant="ghost"
                 size="sm"
@@ -89,7 +109,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 ) : (
                   <Moon className="h-5 w-5" />
                 )}
-                {resolvedTheme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                {resolvedTheme === 'dark' ? t.common.lightMode : t.common.darkMode}
               </Button>
             </div>
           </nav>
@@ -110,8 +130,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary">
             <Activity className="w-5 h-5 text-primary-foreground" />
           </div>
-          <span className="text-lg font-bold text-sidebar-foreground">FitTrack</span>
+          <span className="text-lg font-bold text-sidebar-foreground">{t.appName}</span>
         </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleLanguage}
+          className="text-sidebar-foreground"
+        >
+          <Globe className="h-5 w-5" />
+        </Button>
         <Button
           variant="ghost"
           size="icon"
@@ -138,18 +166,21 @@ export function Layout({ children }: { children: React.ReactNode }) {
               onClick={() => setMobileMenuOpen(false)}
             />
             <motion.div
-              initial={{ x: '-100%' }}
+              initial={{ x: isRTL ? '100%' : '-100%' }}
               animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
+              exit={{ x: isRTL ? '100%' : '-100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed inset-y-0 left-0 z-50 w-64 bg-sidebar border-r border-sidebar-border lg:hidden"
+              className={cn(
+                "fixed inset-y-0 z-50 w-64 bg-sidebar lg:hidden",
+                isRTL ? "right-0 border-s border-sidebar-border" : "left-0 border-e border-sidebar-border"
+              )}
             >
               <div className="flex h-16 items-center justify-between px-6">
                 <div className="flex items-center gap-2">
                   <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary">
                     <Activity className="w-5 h-5 text-primary-foreground" />
                   </div>
-                  <span className="text-lg font-bold text-sidebar-foreground">FitTrack</span>
+                  <span className="text-lg font-bold text-sidebar-foreground">{t.appName}</span>
                 </div>
                 <Button
                   variant="ghost"
@@ -193,7 +224,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </AnimatePresence>
 
       {/* Main Content */}
-      <main className="lg:pl-64">
+      <main className={cn(isRTL ? "lg:pe-64" : "lg:ps-64")}>
         <div className="px-4 py-6 sm:px-6 lg:px-8">
           {children}
         </div>
