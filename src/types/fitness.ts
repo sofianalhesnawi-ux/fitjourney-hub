@@ -107,6 +107,7 @@ export interface Goals {
 export interface UserSettings {
   theme: 'light' | 'dark' | 'system';
   units: 'metric' | 'imperial';
+  language: 'en' | 'ar';
 }
 
 export interface FitTrackData {

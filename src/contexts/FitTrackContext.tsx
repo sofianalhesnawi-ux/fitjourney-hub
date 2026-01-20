@@ -1,21 +1,23 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useFitTrackData } from '@/hooks/useFitTrackData';
 import { useTheme } from '@/hooks/useTheme';
+import { useLanguage, type UseLanguageReturn } from '@/hooks/useLanguage';
 
 type FitTrackContextType = ReturnType<typeof useFitTrackData> & {
   theme: 'light' | 'dark' | 'system';
   setTheme: (theme: 'light' | 'dark' | 'system') => void;
   resolvedTheme: 'light' | 'dark';
-};
+} & UseLanguageReturn;
 
 const FitTrackContext = createContext<FitTrackContextType | null>(null);
 
 export function FitTrackProvider({ children }: { children: ReactNode }) {
   const fitTrackData = useFitTrackData();
   const { theme, setTheme, resolvedTheme } = useTheme();
+  const languageData = useLanguage();
 
   return (
-    <FitTrackContext.Provider value={{ ...fitTrackData, theme, setTheme, resolvedTheme }}>
+    <FitTrackContext.Provider value={{ ...fitTrackData, theme, setTheme, resolvedTheme, ...languageData }}>
       {children}
     </FitTrackContext.Provider>
   );

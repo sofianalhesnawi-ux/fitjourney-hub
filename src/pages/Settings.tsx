@@ -22,8 +22,8 @@ import {
   Sun,
   Monitor,
   AlertTriangle,
-  CheckCircle,
-  FileJson
+  FileJson,
+  Globe
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
@@ -35,7 +35,10 @@ export default function Settings() {
     setTheme, 
     exportData, 
     importData, 
-    clearAllData 
+    clearAllData,
+    t,
+    language,
+    setLanguage
   } = useFitTrack();
   
   const [importDialogOpen, setImportDialogOpen] = useState(false);
@@ -45,7 +48,7 @@ export default function Settings() {
 
   const handleExport = () => {
     exportData();
-    toast.success('Data exported successfully!');
+    toast.success(t.settings.dataExported);
   };
 
   const handleImportClick = () => {
@@ -61,10 +64,10 @@ export default function Settings() {
       const content = reader.result as string;
       const success = importData(content, mergeOnImport);
       if (success) {
-        toast.success(mergeOnImport ? 'Data merged successfully!' : 'Data imported successfully!');
+        toast.success(mergeOnImport ? t.settings.dataMerged : t.settings.dataImported);
         setImportDialogOpen(false);
       } else {
-        toast.error('Failed to import data. Please check the file format.');
+        toast.error(t.settings.importFailed);
       }
     };
     reader.readAsText(file);
@@ -78,7 +81,7 @@ export default function Settings() {
   const handleClearData = () => {
     clearAllData();
     setClearDialogOpen(false);
-    toast.success('All data has been cleared.');
+    toast.success(t.settings.dataCleared);
   };
 
   // Calculate storage stats
@@ -93,8 +96,8 @@ export default function Settings() {
     >
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Settings</h1>
-          <p className="text-muted-foreground">Manage your app preferences and data</p>
+          <h1 className="text-2xl font-bold text-foreground">{t.settings.title}</h1>
+          <p className="text-muted-foreground">{t.settings.subtitle}</p>
         </div>
       </div>
 
@@ -103,15 +106,44 @@ export default function Settings() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <SettingsIcon className="h-5 w-5" />
-            Appearance
+            {t.settings.appearance}
           </CardTitle>
           <CardDescription>
-            Customize how FitTrack looks
+            {t.settings.customizeLook}
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
+          {/* Language */}
           <div>
-            <Label className="text-base mb-3 block">Theme</Label>
+            <Label className="text-base mb-3 block flex items-center gap-2">
+              <Globe className="h-4 w-4" />
+              {t.settings.language}
+            </Label>
+            <div className="flex gap-2">
+              <Button
+                variant={language === 'en' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setLanguage('en')}
+                className="flex-1"
+              >
+                {t.settings.english}
+              </Button>
+              <Button
+                variant={language === 'ar' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setLanguage('ar')}
+                className="flex-1"
+              >
+                {t.settings.arabic}
+              </Button>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Theme */}
+          <div>
+            <Label className="text-base mb-3 block">{t.settings.theme}</Label>
             <div className="flex gap-2">
               <Button
                 variant={theme === 'light' ? 'default' : 'outline'}
@@ -119,8 +151,8 @@ export default function Settings() {
                 onClick={() => setTheme('light')}
                 className="flex-1"
               >
-                <Sun className="h-4 w-4 mr-2" />
-                Light
+                <Sun className="h-4 w-4 me-2" />
+                {t.settings.light}
               </Button>
               <Button
                 variant={theme === 'dark' ? 'default' : 'outline'}
@@ -128,8 +160,8 @@ export default function Settings() {
                 onClick={() => setTheme('dark')}
                 className="flex-1"
               >
-                <Moon className="h-4 w-4 mr-2" />
-                Dark
+                <Moon className="h-4 w-4 me-2" />
+                {t.settings.dark}
               </Button>
               <Button
                 variant={theme === 'system' ? 'default' : 'outline'}
@@ -137,8 +169,8 @@ export default function Settings() {
                 onClick={() => setTheme('system')}
                 className="flex-1"
               >
-                <Monitor className="h-4 w-4 mr-2" />
-                System
+                <Monitor className="h-4 w-4 me-2" />
+                {t.settings.system}
               </Button>
             </div>
           </div>
@@ -150,25 +182,25 @@ export default function Settings() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileJson className="h-5 w-5" />
-            Data Management
+            {t.settings.dataManagement}
           </CardTitle>
           <CardDescription>
-            Export, import, or clear your fitness data
+            {t.settings.dataManagementDesc}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Storage Info */}
           <div className="p-4 bg-muted rounded-lg">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Local Storage Usage</span>
+              <span className="text-sm font-medium">{t.settings.storageUsage}</span>
               <span className="text-sm text-muted-foreground">{dataSizeKB} KB</span>
             </div>
             <div className="mt-2 text-xs text-muted-foreground">
-              <p>• {data.workoutTemplates.length} workout templates</p>
-              <p>• {data.workoutLogs.length} workout logs</p>
-              <p>• {data.meals.length} meals logged</p>
-              <p>• {data.weightEntries.length} weight entries</p>
-              <p>• {data.progressPhotos.length} progress photos</p>
+              <p>• {data.workoutTemplates.length} {t.settings.workoutTemplates}</p>
+              <p>• {data.workoutLogs.length} {t.settings.workoutLogs}</p>
+              <p>• {data.meals.length} {t.settings.mealsLogged}</p>
+              <p>• {data.weightEntries.length} {t.settings.weightEntries}</p>
+              <p>• {data.progressPhotos.length} {t.settings.progressPhotos}</p>
             </div>
           </div>
 
@@ -177,14 +209,14 @@ export default function Settings() {
           {/* Export */}
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="font-medium">Export Data</h4>
+              <h4 className="font-medium">{t.settings.exportData}</h4>
               <p className="text-sm text-muted-foreground">
-                Download all your data as a JSON file
+                {t.settings.exportDataDesc}
               </p>
             </div>
             <Button variant="outline" onClick={handleExport}>
-              <Download className="h-4 w-4 mr-2" />
-              Export
+              <Download className="h-4 w-4 me-2" />
+              {t.common.export}
             </Button>
           </div>
 
@@ -193,14 +225,14 @@ export default function Settings() {
           {/* Import */}
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="font-medium">Import Data</h4>
+              <h4 className="font-medium">{t.settings.importData}</h4>
               <p className="text-sm text-muted-foreground">
-                Restore data from a backup file
+                {t.settings.importDataDesc}
               </p>
             </div>
             <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
-              <Upload className="h-4 w-4 mr-2" />
-              Import
+              <Upload className="h-4 w-4 me-2" />
+              {t.common.import}
             </Button>
           </div>
 
@@ -209,14 +241,14 @@ export default function Settings() {
           {/* Clear Data */}
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="font-medium text-destructive">Clear All Data</h4>
+              <h4 className="font-medium text-destructive">{t.settings.clearAllData}</h4>
               <p className="text-sm text-muted-foreground">
-                Permanently delete all your data
+                {t.settings.clearAllDataDesc}
               </p>
             </div>
             <Button variant="destructive" onClick={() => setClearDialogOpen(true)}>
-              <Trash2 className="h-4 w-4 mr-2" />
-              Clear
+              <Trash2 className="h-4 w-4 me-2" />
+              {t.common.clear}
             </Button>
           </div>
         </CardContent>
@@ -225,18 +257,13 @@ export default function Settings() {
       {/* About */}
       <Card>
         <CardHeader>
-          <CardTitle>About FitTrack</CardTitle>
+          <CardTitle>{t.settings.aboutFitTrack}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-muted-foreground">
-          <p>
-            FitTrack is a personal fitness progress tracker that helps you monitor your workouts, 
-            nutrition, body metrics, and goals.
-          </p>
-          <p>
-            All your data is stored locally in your browser. No account needed, completely private.
-          </p>
+          <p>{t.settings.aboutDesc}</p>
+          <p>{t.settings.aboutPrivacy}</p>
           <p className="pt-2 text-xs">
-            Version 1.0.0
+            {t.settings.version} 1.0.0
           </p>
         </CardContent>
       </Card>
@@ -245,17 +272,17 @@ export default function Settings() {
       <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Import Data</DialogTitle>
+            <DialogTitle>{t.settings.importDialogTitle}</DialogTitle>
             <DialogDescription>
-              Upload a FitTrack backup file to restore your data.
+              {t.settings.importDialogDesc}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="flex items-center justify-between">
               <div>
-                <Label htmlFor="merge-switch">Merge with existing data</Label>
+                <Label htmlFor="merge-switch">{t.settings.mergeWithExisting}</Label>
                 <p className="text-xs text-muted-foreground">
-                  If disabled, existing data will be replaced
+                  {t.settings.mergeDisabledWarning}
                 </p>
               </div>
               <Switch
@@ -269,18 +296,18 @@ export default function Settings() {
               <div className="flex items-start gap-2 p-3 bg-warning/10 border border-warning/20 rounded-lg text-sm">
                 <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
                 <p className="text-warning">
-                  This will replace all your current data with the imported file.
+                  {t.settings.replaceWarning}
                 </p>
               </div>
             )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setImportDialogOpen(false)}>
-              Cancel
+              {t.common.cancel}
             </Button>
             <Button onClick={handleImportClick}>
-              <Upload className="h-4 w-4 mr-2" />
-              Choose File
+              <Upload className="h-4 w-4 me-2" />
+              {t.settings.chooseFile}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -292,32 +319,31 @@ export default function Settings() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-destructive">
               <AlertTriangle className="h-5 w-5" />
-              Clear All Data
+              {t.settings.clearDialogTitle}
             </DialogTitle>
             <DialogDescription>
-              This action cannot be undone. All your fitness data including workouts, 
-              meals, measurements, and progress photos will be permanently deleted.
+              {t.settings.clearDialogDesc}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <p className="text-sm font-medium">You will lose:</p>
+            <p className="text-sm font-medium">{t.settings.youWillLose}</p>
             <ul className="mt-2 text-sm text-muted-foreground space-y-1">
-              <li>• {data.workoutTemplates.length} workout templates</li>
-              <li>• {data.workoutLogs.length} workout logs</li>
-              <li>• {data.meals.length} meals logged</li>
-              <li>• {data.weightEntries.length} weight entries</li>
-              <li>• {data.bodyCompositions.length} body composition records</li>
-              <li>• {data.bodyMeasurements.length} body measurements</li>
-              <li>• {data.progressPhotos.length} progress photos</li>
+              <li>• {data.workoutTemplates.length} {t.settings.workoutTemplates}</li>
+              <li>• {data.workoutLogs.length} {t.settings.workoutLogs}</li>
+              <li>• {data.meals.length} {t.settings.mealsLogged}</li>
+              <li>• {data.weightEntries.length} {t.settings.weightEntries}</li>
+              <li>• {data.bodyCompositions.length} {t.settings.bodyCompositionRecords}</li>
+              <li>• {data.bodyMeasurements.length} {t.settings.bodyMeasurements}</li>
+              <li>• {data.progressPhotos.length} {t.settings.progressPhotos}</li>
             </ul>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setClearDialogOpen(false)}>
-              Cancel
+              {t.common.cancel}
             </Button>
             <Button variant="destructive" onClick={handleClearData}>
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete Everything
+              <Trash2 className="h-4 w-4 me-2" />
+              {t.settings.deleteEverything}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -38,7 +38,7 @@ const CHART_COLORS = [
 ];
 
 export default function Dashboard() {
-  const { data } = useFitTrack();
+  const { data, t, isRTL } = useFitTrack();
   
   const today = getToday();
   const weekStart = getWeekStart();
@@ -91,7 +91,9 @@ export default function Dashboard() {
     }));
 
   // Weekly workout data
-  const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const daysOfWeek = isRTL 
+    ? ['الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت', 'الأحد']
+    : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const workoutBarData = daysOfWeek.map((day, index) => {
     const dayDate = new Date(weekStart);
     dayDate.setDate(dayDate.getDate() + index);
@@ -102,9 +104,9 @@ export default function Dashboard() {
 
   // Macro pie chart data
   const macroData = [
-    { name: 'Protein', value: todaysProtein * 4, grams: todaysProtein },
-    { name: 'Carbs', value: todaysCarbs * 4, grams: todaysCarbs },
-    { name: 'Fats', value: todaysFats * 9, grams: todaysFats },
+    { name: t.dashboard.protein, value: todaysProtein * 4, grams: todaysProtein },
+    { name: t.dashboard.carbs, value: todaysCarbs * 4, grams: todaysCarbs },
+    { name: t.dashboard.fats, value: todaysFats * 9, grams: todaysFats },
   ];
 
   // Recent activity
@@ -134,8 +136,8 @@ export default function Dashboard() {
     >
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground">Track your fitness journey</p>
+          <h1 className="text-2xl font-bold text-foreground">{t.dashboard.title}</h1>
+          <p className="text-muted-foreground">{t.dashboard.subtitle}</p>
         </div>
       </div>
 
@@ -143,17 +145,17 @@ export default function Dashboard() {
       <motion.div variants={item} className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Current Weight</CardTitle>
+            <CardTitle className="text-sm font-medium">{t.dashboard.currentWeight}</CardTitle>
             <Scale className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {currentWeight ? `${currentWeight} kg` : '—'}
+              {currentWeight ? `${currentWeight} ${t.common.kg}` : '—'}
             </div>
             {weightChange !== null && (
               <p className={`text-xs flex items-center gap-1 ${weightChange > 0 ? 'text-warning' : 'text-success'}`}>
                 {weightChange > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                {weightChange > 0 ? '+' : ''}{weightChange.toFixed(1)} kg
+                {weightChange > 0 ? '+' : ''}{weightChange.toFixed(1)} {t.common.kg}
               </p>
             )}
           </CardContent>
@@ -161,7 +163,7 @@ export default function Dashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Body Fat %</CardTitle>
+            <CardTitle className="text-sm font-medium">{t.dashboard.bodyFat}</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -169,27 +171,27 @@ export default function Dashboard() {
               {latestBodyComp?.bodyFat ? `${latestBodyComp.bodyFat}%` : '—'}
             </div>
             <p className="text-xs text-muted-foreground">
-              {latestBodyComp ? `Updated ${formatDateShort(latestBodyComp.date)}` : 'No data yet'}
+              {latestBodyComp ? `${t.dashboard.updated} ${formatDateShort(latestBodyComp.date)}` : t.common.noData}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Workouts This Week</CardTitle>
+            <CardTitle className="text-sm font-medium">{t.dashboard.workoutsThisWeek}</CardTitle>
             <Dumbbell className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{workoutsThisWeek}</div>
             <p className="text-xs text-muted-foreground">
-              Goal: {data.goals.weeklyWorkouts || 4} per week
+              {t.dashboard.goalPerWeek.replace('{0}', String(data.goals.weeklyWorkouts || 4))}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Today's Calories</CardTitle>
+            <CardTitle className="text-sm font-medium">{t.dashboard.todaysCalories}</CardTitle>
             <Flame className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -197,7 +199,7 @@ export default function Dashboard() {
             <div className="mt-2">
               <Progress value={calorieProgress} className="h-2" />
               <p className="text-xs text-muted-foreground mt-1">
-                {todaysCalories} / {calorieGoal} kcal
+                {todaysCalories} / {calorieGoal} {t.common.kcal}
               </p>
             </div>
           </CardContent>
@@ -208,20 +210,20 @@ export default function Dashboard() {
       <motion.div variants={item} className="flex flex-wrap gap-3">
         <Button asChild>
           <Link to="/workouts">
-            <Plus className="h-4 w-4 mr-2" />
-            Log Workout
+            <Plus className="h-4 w-4 me-2" />
+            {t.dashboard.logWorkout}
           </Link>
         </Button>
         <Button variant="outline" asChild>
           <Link to="/nutrition">
-            <Apple className="h-4 w-4 mr-2" />
-            Add Meal
+            <Apple className="h-4 w-4 me-2" />
+            {t.dashboard.addMeal}
           </Link>
         </Button>
         <Button variant="outline" asChild>
           <Link to="/metrics">
-            <Scale className="h-4 w-4 mr-2" />
-            Record Weight
+            <Scale className="h-4 w-4 me-2" />
+            {t.dashboard.recordWeight}
           </Link>
         </Button>
       </motion.div>
@@ -231,7 +233,7 @@ export default function Dashboard() {
         {/* Weight Trend */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Weight Trend</CardTitle>
+            <CardTitle className="text-lg">{t.dashboard.weightTrend}</CardTitle>
           </CardHeader>
           <CardContent>
             {weightChartData.length > 0 ? (
@@ -242,11 +244,13 @@ export default function Dashboard() {
                     dataKey="date" 
                     tick={{ fontSize: 12 }}
                     className="text-muted-foreground"
+                    reversed={isRTL}
                   />
                   <YAxis 
                     domain={['auto', 'auto']}
                     tick={{ fontSize: 12 }}
                     className="text-muted-foreground"
+                    orientation={isRTL ? 'right' : 'left'}
                   />
                   <Tooltip 
                     contentStyle={{ 
@@ -266,7 +270,7 @@ export default function Dashboard() {
               </ResponsiveContainer>
             ) : (
               <div className="h-[250px] flex items-center justify-center text-muted-foreground">
-                <p>No weight data yet. Start tracking!</p>
+                <p>{t.dashboard.noWeightData}</p>
               </div>
             )}
           </CardContent>
@@ -275,7 +279,7 @@ export default function Dashboard() {
         {/* Weekly Workouts */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">This Week's Workouts</CardTitle>
+            <CardTitle className="text-lg">{t.dashboard.thisWeeksWorkouts}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
@@ -285,12 +289,14 @@ export default function Dashboard() {
                   dataKey="day" 
                   tick={{ fontSize: 12 }}
                   className="text-muted-foreground"
+                  reversed={isRTL}
                 />
                 <YAxis 
                   domain={[0, 1]}
                   tick={{ fontSize: 12 }}
                   className="text-muted-foreground"
                   tickFormatter={() => ''}
+                  orientation={isRTL ? 'right' : 'left'}
                 />
                 <Tooltip 
                   contentStyle={{ 
@@ -298,7 +304,7 @@ export default function Dashboard() {
                     border: '1px solid hsl(var(--border))',
                     borderRadius: '8px'
                   }}
-                  formatter={(value: number) => [value ? 'Completed' : 'Rest day', 'Status']}
+                  formatter={(value: number) => [value ? t.workouts.completed : t.workouts.restDay, t.workouts.status]}
                 />
                 <Bar 
                   dataKey="workouts" 
@@ -316,7 +322,7 @@ export default function Dashboard() {
         {/* Today's Macros */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Today's Macros</CardTitle>
+            <CardTitle className="text-lg">{t.dashboard.todaysMacros}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-6">
@@ -342,7 +348,7 @@ export default function Dashboard() {
                         border: '1px solid hsl(var(--border))',
                         borderRadius: '8px'
                       }}
-                      formatter={(_, __, props) => [`${props.payload.grams}g`, props.payload.name]}
+                      formatter={(_, __, props) => [`${props.payload.grams}${t.common.g}`, props.payload.name]}
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -351,23 +357,23 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: CHART_COLORS[0] }} />
-                    <span className="text-sm">Protein</span>
+                    <span className="text-sm">{t.dashboard.protein}</span>
                   </div>
-                  <span className="font-medium">{todaysProtein}g</span>
+                  <span className="font-medium">{todaysProtein}{t.common.g}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: CHART_COLORS[1] }} />
-                    <span className="text-sm">Carbs</span>
+                    <span className="text-sm">{t.dashboard.carbs}</span>
                   </div>
-                  <span className="font-medium">{todaysCarbs}g</span>
+                  <span className="font-medium">{todaysCarbs}{t.common.g}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: CHART_COLORS[2] }} />
-                    <span className="text-sm">Fats</span>
+                    <span className="text-sm">{t.dashboard.fats}</span>
                   </div>
-                  <span className="font-medium">{todaysFats}g</span>
+                  <span className="font-medium">{todaysFats}{t.common.g}</span>
                 </div>
               </div>
             </div>
@@ -377,9 +383,9 @@ export default function Dashboard() {
         {/* Recent Activity */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">Recent Workouts</CardTitle>
+            <CardTitle className="text-lg">{t.dashboard.recentWorkouts}</CardTitle>
             <Button variant="ghost" size="sm" asChild>
-              <Link to="/workouts">View All</Link>
+              <Link to="/workouts">{t.common.viewAll}</Link>
             </Button>
           </CardHeader>
           <CardContent>
@@ -392,10 +398,10 @@ export default function Dashboard() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">
-                        {workout.templateName || 'Custom Workout'}
+                        {workout.templateName || t.dashboard.customWorkout}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {formatDateShort(workout.date)} • {workout.exercises.length} exercises
+                        {formatDateShort(workout.date)} • {workout.exercises.length} {t.dashboard.exercises}
                       </p>
                     </div>
                   </div>
@@ -404,7 +410,7 @@ export default function Dashboard() {
             ) : (
               <div className="text-center py-6 text-muted-foreground">
                 <Dumbbell className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p>No workouts logged yet</p>
+                <p>{t.dashboard.noWorkoutsLogged}</p>
               </div>
             )}
           </CardContent>

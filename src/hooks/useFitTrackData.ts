@@ -24,7 +24,7 @@ const defaultData: FitTrackData = {
   bodyMeasurements: [],
   progressPhotos: [],
   goals: {},
-  settings: { theme: 'system', units: 'metric' },
+  settings: { theme: 'system', units: 'metric', language: 'en' },
   frequentFoods: []
 };
 
