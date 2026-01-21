@@ -27,7 +27,7 @@ import {
 import { motion } from 'framer-motion';
 
 export default function Reports() {
-  const { data } = useFitTrack();
+  const { data, t, isRTL } = useFitTrack();
   const [period, setPeriod] = useState<'weekly' | 'monthly'>('weekly');
 
   const today = new Date();
@@ -109,7 +109,9 @@ export default function Reports() {
   // Workout frequency chart data
   const getWorkoutChartData = () => {
     if (period === 'weekly') {
-      const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      const days = isRTL
+        ? ['إث', 'ثل', 'أر', 'خم', 'جم', 'سب', 'أح']
+        : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
       return days.map((day, index) => {
         const dayDate = new Date(weekStart);
         dayDate.setDate(dayDate.getDate() + index);
@@ -128,7 +130,7 @@ export default function Reports() {
           const logDate = new Date(log.date);
           return logDate >= current && logDate <= weekEnd;
         }).length;
-        weeks.push({ week: `Week ${weekNum}`, workouts: count });
+        weeks.push({ week: `${t.reports.week} ${weekNum}`, workouts: count });
         current.setDate(current.getDate() + 7);
         weekNum++;
       }
@@ -143,7 +145,7 @@ export default function Reports() {
   
   // Check for workout consistency
   if (data.goals.weeklyWorkouts && currentStats.workoutCount >= data.goals.weeklyWorkouts) {
-    achievements.push({ icon: Trophy, label: 'Workout Goal Reached', color: 'bg-success' });
+    achievements.push({ icon: Trophy, label: t.reports.workoutGoalReached, color: 'bg-success' });
   }
   
   // Check for weight goal progress
@@ -151,9 +153,9 @@ export default function Reports() {
     const isLosingWeight = data.goals.targetWeight && currentStats.endWeight && 
       data.goals.targetWeight < currentStats.startWeight;
     if (isLosingWeight && currentStats.weightChange < 0) {
-      achievements.push({ icon: TrendingDown, label: 'Weight Loss Progress', color: 'bg-primary' });
+      achievements.push({ icon: TrendingDown, label: t.reports.weightLossProgress, color: 'bg-primary' });
     } else if (!isLosingWeight && currentStats.weightChange > 0) {
-      achievements.push({ icon: TrendingUp, label: 'Weight Gain Progress', color: 'bg-primary' });
+      achievements.push({ icon: TrendingUp, label: t.reports.weightGainProgress, color: 'bg-primary' });
     }
   }
 
@@ -175,15 +177,15 @@ export default function Reports() {
     >
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Progress Reports</h1>
-          <p className="text-muted-foreground">Analyze your fitness journey</p>
+          <h1 className="text-2xl font-bold text-foreground">{t.reports.title}</h1>
+          <p className="text-muted-foreground">{t.reports.subtitle}</p>
         </div>
       </div>
 
       <Tabs value={period} onValueChange={(v) => setPeriod(v as 'weekly' | 'monthly')}>
         <TabsList>
-          <TabsTrigger value="weekly">Weekly</TabsTrigger>
-          <TabsTrigger value="monthly">Monthly</TabsTrigger>
+          <TabsTrigger value="weekly">{t.reports.weekly}</TabsTrigger>
+          <TabsTrigger value="monthly">{t.reports.monthly}</TabsTrigger>
         </TabsList>
 
         <TabsContent value={period} className="mt-6 space-y-6">
@@ -193,7 +195,7 @@ export default function Reports() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <Dumbbell className="h-4 w-4" />
-                  Workouts
+                  {t.reports.workouts}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -205,7 +207,9 @@ export default function Reports() {
                     <TrendingDown className="h-4 w-4 text-destructive" />
                   ) : null}
                   <span className="text-muted-foreground">
-                    vs {prevStats.workoutCount} last {period === 'weekly' ? 'week' : 'month'}
+                    {t.reports.vsLast
+                      .replace('{0}', String(prevStats.workoutCount))
+                      .replace('{1}', period === 'weekly' ? t.reports.week : t.reports.month)}
                   </span>
                 </div>
               </CardContent>
@@ -215,13 +219,13 @@ export default function Reports() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <Flame className="h-4 w-4" />
-                  Avg Daily Calories
+                  {t.reports.avgDailyCalories}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{currentStats.avgCalories}</div>
                 <p className="text-sm text-muted-foreground">
-                  {currentStats.avgProtein}g protein avg
+                  {t.reports.proteinAvg.replace('{0}', String(currentStats.avgProtein))}
                 </p>
               </CardContent>
             </Card>
@@ -230,20 +234,20 @@ export default function Reports() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <Scale className="h-4 w-4" />
-                  Weight Change
+                  {t.reports.weightChange}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
                   {currentStats.weightChange !== null 
-                    ? `${currentStats.weightChange > 0 ? '+' : ''}${currentStats.weightChange.toFixed(1)} kg`
+                    ? `${currentStats.weightChange > 0 ? '+' : ''}${currentStats.weightChange.toFixed(1)} ${t.common.kg}`
                     : '—'
                   }
                 </div>
                 <p className="text-sm text-muted-foreground">
                   {currentStats.startWeight && currentStats.endWeight 
-                    ? `${currentStats.startWeight} → ${currentStats.endWeight} kg`
-                    : 'No data'
+                    ? `${currentStats.startWeight} → ${currentStats.endWeight} ${t.common.kg}`
+                    : t.common.noData
                   }
                 </p>
               </CardContent>
@@ -253,7 +257,7 @@ export default function Reports() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <Target className="h-4 w-4" />
-                  Goal Progress
+                  {t.reports.goalProgress}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -264,7 +268,7 @@ export default function Reports() {
                   }
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {currentStats.workoutCount}/{data.goals.weeklyWorkouts || '?'} workouts
+                  {currentStats.workoutCount}/{data.goals.weeklyWorkouts || '?'} {t.reports.workouts}
                 </p>
               </CardContent>
             </Card>
@@ -275,7 +279,7 @@ export default function Reports() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5" />
-                Workout Frequency
+                {t.reports.workoutFrequency}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -285,6 +289,7 @@ export default function Reports() {
                   <XAxis 
                     dataKey={period === 'weekly' ? 'day' : 'week'} 
                     tick={{ fontSize: 12 }} 
+                    reversed={isRTL}
                   />
                   <YAxis tick={{ fontSize: 12 }} />
                   <Tooltip 
@@ -311,13 +316,13 @@ export default function Reports() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
-                  Period Comparison
+                  {t.reports.periodComparison}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                    <span className="text-sm font-medium">Workouts</span>
+                    <span className="text-sm font-medium">{t.reports.workouts}</span>
                     <div className="flex items-center gap-4">
                       <span className="text-muted-foreground">{prevStats.workoutCount}</span>
                       <span className="font-bold">{currentStats.workoutCount}</span>
@@ -329,14 +334,14 @@ export default function Reports() {
                     </div>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                    <span className="text-sm font-medium">Avg Calories</span>
+                    <span className="text-sm font-medium">{t.reports.avgDailyCalories}</span>
                     <div className="flex items-center gap-4">
                       <span className="text-muted-foreground">{prevStats.avgCalories}</span>
                       <span className="font-bold">{currentStats.avgCalories}</span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                    <span className="text-sm font-medium">Avg Protein</span>
+                    <span className="text-sm font-medium">{t.dashboard.protein}</span>
                     <div className="flex items-center gap-4">
                       <span className="text-muted-foreground">{prevStats.avgProtein}g</span>
                       <span className="font-bold">{currentStats.avgProtein}g</span>
@@ -351,7 +356,7 @@ export default function Reports() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Trophy className="h-5 w-5" />
-                  Achievements & Highlights
+                  {t.reports.achievementsHighlights}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -368,18 +373,18 @@ export default function Reports() {
                   </div>
                 ) : (
                   <p className="text-muted-foreground text-center py-4">
-                    Keep working towards your goals!
+                    {t.reports.keepWorking}
                   </p>
                 )}
 
                 {currentStats.personalRecords.length > 0 && (
                   <>
-                    <h4 className="font-medium pt-2">Personal Records</h4>
+                    <h4 className="font-medium pt-2">{t.reports.personalRecords}</h4>
                     <div className="space-y-2">
                       {currentStats.personalRecords.map(([exercise, weight]) => (
                         <div key={exercise} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
                           <span className="text-sm">{exercise}</span>
-                          <Badge variant="outline">{weight} kg</Badge>
+                          <Badge variant="outline">{weight} {t.common.kg}</Badge>
                         </div>
                       ))}
                     </div>
@@ -388,10 +393,10 @@ export default function Reports() {
 
                 {mostConsistentExercise && (
                   <div className="pt-2">
-                    <h4 className="font-medium mb-2">Most Consistent Exercise</h4>
+                    <h4 className="font-medium mb-2">{t.reports.mostConsistentExercise}</h4>
                     <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg">
                       <span className="font-medium text-primary">{mostConsistentExercise[0]}</span>
-                      <span className="text-sm text-muted-foreground">{mostConsistentExercise[1]} times</span>
+                      <span className="text-sm text-muted-foreground">{mostConsistentExercise[1]} {t.reports.times}</span>
                     </div>
                   </div>
                 )}
