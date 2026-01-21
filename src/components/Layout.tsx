@@ -73,7 +73,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     : (sidebarCollapsed ? ChevronRight : ChevronLeft);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Desktop Sidebar */}
       <aside 
         className={cn(
@@ -83,7 +83,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         )}
       >
         <div className={cn(
-          "flex grow flex-col gap-y-5 overflow-y-auto bg-sidebar px-3 pb-4 relative",
+          "flex grow flex-col gap-y-5 overflow-y-auto scrollbar-hide bg-sidebar px-3 pb-4 relative",
           isRTL ? "border-l border-sidebar-border" : "border-r border-sidebar-border"
         )}>
           {/* Collapse Toggle Button */}
@@ -93,7 +93,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
             onClick={toggleSidebar}
             className={cn(
               "absolute top-4 z-10 h-6 w-6 rounded-full bg-sidebar-accent border border-sidebar-border hover:bg-sidebar-accent/80",
-              isRTL ? "-left-3" : "-right-3"
+              // Keep the button inside the sidebar to avoid horizontal overflow/scrollbars.
+              isRTL ? "left-2" : "right-2"
             )}
           >
             <CollapseIcon className="h-4 w-4" />
@@ -235,7 +236,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               exit={{ x: isRTL ? '100%' : '-100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               className={cn(
-                "fixed inset-y-0 z-50 w-64 bg-sidebar lg:hidden",
+                "fixed inset-y-0 z-50 w-64 bg-sidebar lg:hidden overflow-y-auto scrollbar-hide",
                 isRTL ? "right-0 border-l border-sidebar-border" : "left-0 border-r border-sidebar-border"
               )}
             >
