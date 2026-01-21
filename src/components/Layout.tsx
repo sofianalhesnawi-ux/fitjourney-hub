@@ -14,15 +14,29 @@ import {
   Moon,
   Menu,
   X,
-  Globe
+  Globe,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+
+const SIDEBAR_COLLAPSED_KEY = 'fittrack-sidebar-collapsed';
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const { theme, setTheme, resolvedTheme, t, isRTL, language, setLanguage } = useFitTrack();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(sidebarCollapsed));
+  }, [sidebarCollapsed]);
 
   const navItems = [
     { path: '/', label: t.nav.dashboard, icon: LayoutDashboard },
@@ -46,23 +60,61 @@ export function Layout({ children }: { children: React.ReactNode }) {
     setLanguage(language === 'en' ? 'ar' : 'en');
   };
 
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
+
+  const sidebarWidth = sidebarCollapsed ? 'w-16' : 'w-64';
+  const mainPadding = sidebarCollapsed ? (isRTL ? 'lg:pr-16' : 'lg:pl-16') : (isRTL ? 'lg:pr-64' : 'lg:pl-64');
+
+  // Determine the correct chevron based on RTL and collapsed state
+  const CollapseIcon = isRTL 
+    ? (sidebarCollapsed ? ChevronLeft : ChevronRight)
+    : (sidebarCollapsed ? ChevronRight : ChevronLeft);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Desktop Sidebar */}
-      <aside className={cn(
-        "hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-64 lg:flex-col",
-        isRTL ? "lg:right-0" : "lg:left-0"
-      )}>
+      <aside 
+        className={cn(
+          "hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col transition-all duration-300",
+          sidebarWidth,
+          isRTL ? "right-0" : "left-0"
+        )}
+      >
         <div className={cn(
-          "flex grow flex-col gap-y-5 overflow-y-auto bg-sidebar px-6 pb-4",
-          isRTL ? "border-s border-sidebar-border" : "border-e border-sidebar-border"
+          "flex grow flex-col gap-y-5 overflow-y-auto bg-sidebar px-3 pb-4 relative",
+          isRTL ? "border-l border-sidebar-border" : "border-r border-sidebar-border"
         )}>
-          <div className="flex h-16 shrink-0 items-center gap-2">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary">
+          {/* Collapse Toggle Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            className={cn(
+              "absolute top-4 z-10 h-6 w-6 rounded-full bg-sidebar-accent border border-sidebar-border hover:bg-sidebar-accent/80",
+              isRTL ? "-left-3" : "-right-3"
+            )}
+          >
+            <CollapseIcon className="h-4 w-4" />
+          </Button>
+
+          {/* Logo */}
+          <div className={cn(
+            "flex h-16 shrink-0 items-center",
+            sidebarCollapsed ? "justify-center" : "gap-2 px-3"
+          )}>
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary shrink-0">
               <Activity className="w-6 h-6 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold text-sidebar-foreground">{t.appName}</span>
+            {!sidebarCollapsed && (
+              <span className="text-xl font-bold text-sidebar-foreground whitespace-nowrap">
+                {t.appName}
+              </span>
+            )}
           </div>
+
+          {/* Navigation */}
           <nav className="flex flex-1 flex-col">
             <ul className="flex flex-1 flex-col gap-y-1">
               {navItems.map((item) => {
@@ -71,8 +123,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   <li key={item.path}>
                     <Link
                       to={item.path}
+                      title={sidebarCollapsed ? item.label : undefined}
                       className={cn(
-                        'group flex gap-x-3 rounded-lg p-3 text-sm font-medium transition-all duration-200',
+                        'group flex items-center rounded-lg p-3 text-sm font-medium transition-all duration-200',
+                        sidebarCollapsed ? 'justify-center' : 'gap-x-3',
                         isActive
                           ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                           : 'text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'
@@ -82,34 +136,44 @@ export function Layout({ children }: { children: React.ReactNode }) {
                         'h-5 w-5 shrink-0 transition-colors',
                         isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-primary'
                       )} />
-                      {item.label}
+                      {!sidebarCollapsed && <span>{item.label}</span>}
                     </Link>
                   </li>
                 );
               })}
             </ul>
+
+            {/* Bottom Actions */}
             <div className="mt-auto pt-4 border-t border-sidebar-border space-y-2">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={toggleLanguage}
-                className="w-full justify-start gap-3 text-sidebar-foreground"
+                title={sidebarCollapsed ? (language === 'en' ? 'العربية' : 'English') : undefined}
+                className={cn(
+                  "w-full text-sidebar-foreground",
+                  sidebarCollapsed ? "justify-center px-0" : "justify-start gap-3"
+                )}
               >
-                <Globe className="h-5 w-5" />
-                {language === 'en' ? 'العربية' : 'English'}
+                <Globe className="h-5 w-5 shrink-0" />
+                {!sidebarCollapsed && (language === 'en' ? 'العربية' : 'English')}
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={toggleTheme}
-                className="w-full justify-start gap-3 text-sidebar-foreground"
+                title={sidebarCollapsed ? (resolvedTheme === 'dark' ? t.common.lightMode : t.common.darkMode) : undefined}
+                className={cn(
+                  "w-full text-sidebar-foreground",
+                  sidebarCollapsed ? "justify-center px-0" : "justify-start gap-3"
+                )}
               >
                 {resolvedTheme === 'dark' ? (
-                  <Sun className="h-5 w-5" />
+                  <Sun className="h-5 w-5 shrink-0" />
                 ) : (
-                  <Moon className="h-5 w-5" />
+                  <Moon className="h-5 w-5 shrink-0" />
                 )}
-                {resolvedTheme === 'dark' ? t.common.lightMode : t.common.darkMode}
+                {!sidebarCollapsed && (resolvedTheme === 'dark' ? t.common.lightMode : t.common.darkMode)}
               </Button>
             </div>
           </nav>
@@ -172,7 +236,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               className={cn(
                 "fixed inset-y-0 z-50 w-64 bg-sidebar lg:hidden",
-                isRTL ? "right-0 border-s border-sidebar-border" : "left-0 border-e border-sidebar-border"
+                isRTL ? "right-0 border-l border-sidebar-border" : "left-0 border-r border-sidebar-border"
               )}
             >
               <div className="flex h-16 items-center justify-between px-6">
@@ -224,7 +288,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </AnimatePresence>
 
       {/* Main Content */}
-      <main className={cn(isRTL ? "lg:pr-64" : "lg:pl-64")}>
+      <main className={cn("transition-all duration-300", mainPadding)}>
         <div className="px-4 py-6 sm:px-6 lg:px-8">
           {children}
         </div>
