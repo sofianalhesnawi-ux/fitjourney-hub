@@ -224,7 +224,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </AnimatePresence>
 
       {/* Main Content */}
-      <main className={cn(isRTL ? "lg:pe-64" : "lg:ps-64")}>
+      <main className={cn(isRTL ? "lg:pr-64" : "lg:pl-64")}>
         <div className="px-4 py-6 sm:px-6 lg:px-8">
           {children}
         </div>
