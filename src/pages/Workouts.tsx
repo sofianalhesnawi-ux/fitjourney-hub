@@ -7,13 +7,16 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Dumbbell, Play, Trash2, Edit2, Calendar, ChevronRight, X } from 'lucide-react';
-import { generateId, formatDate, getToday } from '@/lib/utils';
+import { Plus, Dumbbell, Play, Trash2, Edit2, Calendar, ChevronRight, ChevronLeft, X } from 'lucide-react';
+import { cn, generateId, formatDate, getToday } from '@/lib/utils';
 import type { WorkoutTemplate, Exercise, WorkoutLog, ExerciseLog, SetLog } from '@/types/fitness';
 import { motion } from 'framer-motion';
 
 export default function Workouts() {
-  const { data, addWorkoutTemplate, updateWorkoutTemplate, deleteWorkoutTemplate, addWorkoutLog, t } = useFitTrack();
+  const { data, addWorkoutTemplate, updateWorkoutTemplate, deleteWorkoutTemplate, addWorkoutLog, t, isRTL } = useFitTrack();
+  
+  // RTL-aware chevron for list items
+  const ListChevron = isRTL ? ChevronLeft : ChevronRight;
   
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
   const [isLogDialogOpen, setIsLogDialogOpen] = useState(false);
@@ -130,7 +133,7 @@ export default function Workouts() {
           {sortedLogs.length > 0 ? (
             <div className="space-y-3">
               {sortedLogs.map((log) => (
-                <Card key={log.id}><CardContent className="py-4"><div className="flex items-center gap-4"><div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10"><Dumbbell className="h-6 w-6 text-primary" /></div><div className="flex-1 min-w-0"><h3 className="font-medium">{log.templateName || t.dashboard.customWorkout}</h3><div className="flex items-center gap-2 text-sm text-muted-foreground"><Calendar className="h-4 w-4" />{formatDate(log.date)}<span>•</span><span>{log.exercises.length} {t.dashboard.exercises}</span></div></div><ChevronRight className="h-5 w-5 text-muted-foreground" /></div>{log.notes && <p className="mt-3 text-sm text-muted-foreground ps-16">{log.notes}</p>}</CardContent></Card>
+                <Card key={log.id}><CardContent className="py-4"><div className="flex items-center gap-4"><div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10"><Dumbbell className="h-6 w-6 text-primary" /></div><div className="flex-1 min-w-0"><h3 className="font-medium">{log.templateName || t.dashboard.customWorkout}</h3><div className="flex items-center gap-2 text-sm text-muted-foreground"><Calendar className="h-4 w-4" />{formatDate(log.date)}<span>•</span><span>{log.exercises.length} {t.dashboard.exercises}</span></div></div><ListChevron className="h-5 w-5 text-muted-foreground" /></div>{log.notes && <p className="mt-3 text-sm text-muted-foreground ps-16">{log.notes}</p>}</CardContent></Card>
               ))}
             </div>
           ) : (

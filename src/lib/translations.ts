@@ -6,6 +6,7 @@ export const translations = {
   en: {
     // App Name
     appName: 'FitTrack',
+    appDescription: 'Track your workouts, nutrition, body metrics, and fitness goals',
     
     // Navigation
     nav: {
@@ -176,6 +177,21 @@ export const translations = {
       uploadPhoto: 'Upload Photo',
       fromLast: 'from last',
       cm: 'cm',
+      noPhotosYet: 'No Photos Yet',
+      uploadProgressPhotos: 'Upload progress photos to track your transformation',
+      noMeasurementsYet: 'No measurements yet',
+      latestMeasurements: 'Latest Measurements',
+      weightKg: 'Weight (kg)',
+      photo: 'Photo',
+      notesPlaceholder: 'e.g., Front view, 2 months in',
+      lArm: 'L Arm',
+      rArm: 'R Arm',
+      lThigh: 'L Thigh',
+      rThigh: 'R Thigh',
+      lCalf: 'L Calf',
+      rCalf: 'R Calf',
+      bf: 'BF',
+      muscle: 'Muscle',
     },
     
     // Goals
@@ -281,6 +297,7 @@ export const translations = {
   ar: {
     // App Name
     appName: 'فيت تراك',
+    appDescription: 'تتبع تمارينك وتغذيتك وقياسات جسمك وأهداف لياقتك',
     
     // Navigation
     nav: {
@@ -451,6 +468,21 @@ export const translations = {
       uploadPhoto: 'رفع صورة',
       fromLast: 'من آخر',
       cm: 'سم',
+      noPhotosYet: 'لا توجد صور بعد',
+      uploadProgressPhotos: 'ارفع صور التقدم لتتبع تحولك',
+      noMeasurementsYet: 'لا توجد قياسات بعد',
+      latestMeasurements: 'أحدث القياسات',
+      weightKg: 'الوزن (كجم)',
+      photo: 'الصورة',
+      notesPlaceholder: 'مثال: منظر أمامي، شهرين',
+      lArm: 'ذ أيسر',
+      rArm: 'ذ أيمن',
+      lThigh: 'ف أيسر',
+      rThigh: 'ف أيمن',
+      lCalf: 'س يسرى',
+      rCalf: 'س يمنى',
+      bf: 'دهون',
+      muscle: 'عضلات',
     },
     
     // Goals
