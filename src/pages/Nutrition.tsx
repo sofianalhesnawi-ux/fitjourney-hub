@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { Plus, Apple, Coffee, Sun, Moon, Cookie, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
-import { generateId, formatDate, getToday } from '@/lib/utils';
+import { cn, generateId, formatDate, getToday } from '@/lib/utils';
 import type { Meal, FoodItem } from '@/types/fitness';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { motion } from 'framer-motion';
@@ -45,9 +45,13 @@ export default function Nutrition() {
       <div className="flex items-center justify-between"><div><h1 className="text-2xl font-bold text-foreground">{t.nutrition.title}</h1><p className="text-muted-foreground">{t.nutrition.subtitle}</p></div></div>
 
       <div className="flex items-center justify-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigateDate('prev')}><ChevronLeft className="h-5 w-5" /></Button>
+        <Button variant="ghost" size="icon" onClick={() => navigateDate('prev')}>
+          {isRTL ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+        </Button>
         <div className="text-center"><p className="font-medium">{formatDate(selectedDate)}</p>{selectedDate === getToday() && <p className="text-xs text-muted-foreground">{t.common.today}</p>}</div>
-        <Button variant="ghost" size="icon" onClick={() => navigateDate('next')} disabled={selectedDate === getToday()}><ChevronRight className="h-5 w-5" /></Button>
+        <Button variant="ghost" size="icon" onClick={() => navigateDate('next')} disabled={selectedDate === getToday()}>
+          {isRTL ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+        </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">

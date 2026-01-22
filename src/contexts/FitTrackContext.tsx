@@ -2,6 +2,7 @@ import React, { createContext, useContext, ReactNode } from 'react';
 import { useFitTrackData } from '@/hooks/useFitTrackData';
 import { useTheme } from '@/hooks/useTheme';
 import { useLanguage, type UseLanguageReturn } from '@/hooks/useLanguage';
+import { useDocumentMeta } from '@/hooks/useDocumentMeta';
 
 type FitTrackContextType = ReturnType<typeof useFitTrackData> & {
   theme: 'light' | 'dark' | 'system';
@@ -15,6 +16,9 @@ export function FitTrackProvider({ children }: { children: ReactNode }) {
   const fitTrackData = useFitTrackData();
   const { theme, setTheme, resolvedTheme } = useTheme();
   const languageData = useLanguage();
+  
+  // Update document title and meta based on language
+  useDocumentMeta(languageData.language);
 
   return (
     <FitTrackContext.Provider value={{ ...fitTrackData, theme, setTheme, resolvedTheme, ...languageData }}>
