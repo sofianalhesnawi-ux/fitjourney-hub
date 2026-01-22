@@ -47,6 +47,8 @@ export const translations = {
       complete: 'complete',
       lightMode: 'Light Mode',
       darkMode: 'Dark Mode',
+      expand: 'Expand',
+      collapse: 'Collapse',
     },
     
     // Dashboard
@@ -338,6 +340,8 @@ export const translations = {
       complete: 'مكتمل',
       lightMode: 'الوضع الفاتح',
       darkMode: 'الوضع الداكن',
+      expand: 'توسيع',
+      collapse: 'طي',
     },
     
     // Dashboard

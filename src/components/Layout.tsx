@@ -14,9 +14,7 @@ import {
   Moon,
   Menu,
   X,
-  Globe,
-  ChevronLeft,
-  ChevronRight
+  Globe
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -67,11 +65,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const sidebarWidth = sidebarCollapsed ? 'w-16' : 'w-64';
   const mainPadding = sidebarCollapsed ? (isRTL ? 'lg:pr-16' : 'lg:pl-16') : (isRTL ? 'lg:pr-64' : 'lg:pl-64');
 
-  // Determine the correct chevron based on RTL and collapsed state
-  const CollapseIcon = isRTL 
-    ? (sidebarCollapsed ? ChevronLeft : ChevronRight)
-    : (sidebarCollapsed ? ChevronRight : ChevronLeft);
-
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Desktop Sidebar */}
@@ -83,28 +76,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
         )}
       >
         <div className={cn(
-          "flex grow flex-col gap-y-5 overflow-y-auto scrollbar-hide bg-sidebar px-3 pb-4 relative",
+          "flex grow flex-col gap-y-5 overflow-y-auto scrollbar-hide bg-sidebar px-3 pb-4",
           isRTL ? "border-l border-sidebar-border" : "border-r border-sidebar-border"
         )}>
-          {/* Collapse Toggle Button */}
-          <Button
-            variant="ghost"
-            size="icon"
+          {/* Logo - clickable to toggle sidebar */}
+          <button
             onClick={toggleSidebar}
+            title={sidebarCollapsed ? t.common.expand : t.common.collapse}
             className={cn(
-              "absolute top-4 z-10 h-6 w-6 rounded-full bg-sidebar-accent border border-sidebar-border hover:bg-sidebar-accent/80",
-              // Keep the button inside the sidebar to avoid horizontal overflow/scrollbars.
-              isRTL ? "left-2" : "right-2"
+              "flex h-16 shrink-0 items-center cursor-pointer transition-colors hover:opacity-80",
+              sidebarCollapsed ? "justify-center" : "gap-2 px-3"
             )}
           >
-            <CollapseIcon className="h-4 w-4" />
-          </Button>
-
-          {/* Logo */}
-          <div className={cn(
-            "flex h-16 shrink-0 items-center",
-            sidebarCollapsed ? "justify-center" : "gap-2 px-3"
-          )}>
             <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary shrink-0">
               <Activity className="w-6 h-6 text-primary-foreground" />
             </div>
@@ -113,7 +96,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 {t.appName}
               </span>
             )}
-          </div>
+          </button>
 
           {/* Navigation */}
           <nav className="flex flex-1 flex-col">
