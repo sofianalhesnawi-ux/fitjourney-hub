@@ -10,7 +10,9 @@ import {
   TrendingUp,
   TrendingDown,
   Plus,
-  Flame
+  Flame,
+  Sparkles,
+  Zap
 } from 'lucide-react';
 import { 
   LineChart, 
@@ -24,7 +26,9 @@ import {
   Bar,
   PieChart,
   Pie,
-  Cell
+  Cell,
+  Area,
+  AreaChart
 } from 'recharts';
 import { Link } from 'react-router-dom';
 import { formatDateShort, getToday, getWeekStart } from '@/lib/utils';
@@ -118,87 +122,127 @@ export default function Dashboard() {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
-      transition: { staggerChildren: 0.1 }
+      transition: { staggerChildren: 0.08 }
     }
   };
 
   const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 }
+    hidden: { opacity: 0, y: 30, scale: 0.95 },
+    show: { 
+      opacity: 1, 
+      y: 0, 
+      scale: 1,
+      transition: { type: "spring" as const, stiffness: 100, damping: 15 }
+    }
   };
+
+  const StatCard = ({ 
+    title, 
+    icon: Icon, 
+    value, 
+    subtitle, 
+    trend, 
+    trendValue,
+    gradient = false,
+    children 
+  }: {
+    title: string;
+    icon: React.ElementType;
+    value: string | number;
+    subtitle?: string;
+    trend?: 'up' | 'down';
+    trendValue?: string;
+    gradient?: boolean;
+    children?: React.ReactNode;
+  }) => (
+    <Card className={gradient ? "bg-gradient-to-br from-primary/5 via-card to-accent/5" : ""}>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+        <div className="p-2 rounded-xl bg-primary/10">
+          <Icon className="h-4 w-4 text-primary" />
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="text-3xl font-bold tracking-tight">{value}</div>
+        {trend && trendValue && (
+          <p className={`text-sm flex items-center gap-1 mt-1 ${
+            trend === 'up' ? 'text-warning' : 'text-success'
+          }`}>
+            {trend === 'up' ? (
+              <TrendingUp className="h-4 w-4" />
+            ) : (
+              <TrendingDown className="h-4 w-4" />
+            )}
+            {trendValue}
+          </p>
+        )}
+        {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
+        {children}
+      </CardContent>
+    </Card>
+  );
 
   return (
     <motion.div 
-      className="space-y-6 pb-20 lg:pb-6"
+      className="space-y-8 pb-20 lg:pb-6"
       variants={container}
       initial="hidden"
       animate="show"
     >
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <motion.div variants={item} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">{t.dashboard.title}</h1>
-          <p className="text-muted-foreground">{t.dashboard.subtitle}</p>
+          <h1 className="text-3xl font-bold tracking-tight">
+            <span className="gradient-text">{t.dashboard.title}</span>
+          </h1>
+          <p className="text-muted-foreground mt-1">{t.dashboard.subtitle}</p>
         </div>
-      </div>
+        <motion.div 
+          whileHover={{ scale: 1.05, rotate: 5 }}
+          className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-2xl bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20"
+        >
+          <Sparkles className="h-4 w-4 text-primary" />
+          <span className="text-sm font-medium text-primary">{t.dashboard.keepItUp || 'Keep it up!'}</span>
+        </motion.div>
+      </motion.div>
 
       {/* Quick Stats */}
       <motion.div variants={item} className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <StatCard
+          title={t.dashboard.currentWeight}
+          icon={Scale}
+          value={currentWeight ? `${currentWeight} ${t.common.kg}` : '—'}
+          trend={weightChange !== null ? (weightChange > 0 ? 'up' : 'down') : undefined}
+          trendValue={weightChange !== null ? `${weightChange > 0 ? '+' : ''}${weightChange.toFixed(1)} ${t.common.kg}` : undefined}
+          gradient
+        />
+
+        <StatCard
+          title={t.dashboard.bodyFat}
+          icon={Activity}
+          value={latestBodyComp?.bodyFat ? `${latestBodyComp.bodyFat}%` : '—'}
+          subtitle={latestBodyComp ? `${t.dashboard.updated} ${formatDateShort(latestBodyComp.date)}` : t.common.noData}
+        />
+
+        <StatCard
+          title={t.dashboard.workoutsThisWeek}
+          icon={Dumbbell}
+          value={workoutsThisWeek}
+          subtitle={t.dashboard.goalPerWeek.replace('{0}', String(data.goals.weeklyWorkouts || 4))}
+        />
+
+        <Card className="bg-gradient-to-br from-primary/5 via-card to-accent/5">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t.dashboard.currentWeight}</CardTitle>
-            <Scale className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {currentWeight ? `${currentWeight} ${t.common.kg}` : '—'}
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t.dashboard.todaysCalories}</CardTitle>
+            <div className="p-2 rounded-xl bg-warning/10">
+              <Flame className="h-4 w-4 text-warning" />
             </div>
-            {weightChange !== null && (
-              <p className={`text-xs flex items-center gap-1 ${weightChange > 0 ? 'text-warning' : 'text-success'}`}>
-                {weightChange > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                {weightChange > 0 ? '+' : ''}{weightChange.toFixed(1)} {t.common.kg}
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t.dashboard.bodyFat}</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {latestBodyComp?.bodyFat ? `${latestBodyComp.bodyFat}%` : '—'}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {latestBodyComp ? `${t.dashboard.updated} ${formatDateShort(latestBodyComp.date)}` : t.common.noData}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t.dashboard.workoutsThisWeek}</CardTitle>
-            <Dumbbell className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{workoutsThisWeek}</div>
-            <p className="text-xs text-muted-foreground">
-              {t.dashboard.goalPerWeek.replace('{0}', String(data.goals.weeklyWorkouts || 4))}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t.dashboard.todaysCalories}</CardTitle>
-            <Flame className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{todaysCalories}</div>
-            <div className="mt-2">
+            <div className="text-3xl font-bold tracking-tight">{todaysCalories}</div>
+            <div className="mt-3 space-y-2">
               <Progress value={calorieProgress} className="h-2" />
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-muted-foreground">
                 {todaysCalories} / {calorieGoal} {t.common.kcal}
               </p>
             </div>
@@ -208,21 +252,21 @@ export default function Dashboard() {
 
       {/* Quick Actions */}
       <motion.div variants={item} className="flex flex-wrap gap-3">
-        <Button asChild>
+        <Button asChild size="lg" className="shadow-lg shadow-primary/20">
           <Link to="/workouts">
-            <Plus className="h-4 w-4 me-2" />
+            <Plus className="h-5 w-5 me-2" />
             {t.dashboard.logWorkout}
           </Link>
         </Button>
-        <Button variant="outline" asChild>
+        <Button variant="outline" size="lg" asChild>
           <Link to="/nutrition">
-            <Apple className="h-4 w-4 me-2" />
+            <Apple className="h-5 w-5 me-2" />
             {t.dashboard.addMeal}
           </Link>
         </Button>
-        <Button variant="outline" asChild>
+        <Button variant="outline" size="lg" asChild>
           <Link to="/metrics">
-            <Scale className="h-4 w-4 me-2" />
+            <Scale className="h-5 w-5 me-2" />
             {t.dashboard.recordWeight}
           </Link>
         </Button>
@@ -231,45 +275,58 @@ export default function Dashboard() {
       {/* Charts Row */}
       <motion.div variants={item} className="grid gap-6 lg:grid-cols-2">
         {/* Weight Trend */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">{t.dashboard.weightTrend}</CardTitle>
+        <Card className="overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Scale className="h-5 w-5 text-primary" />
+              {t.dashboard.weightTrend}
+            </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             {weightChartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={weightChartData}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+              <ResponsiveContainer width="100%" height={280}>
+                <AreaChart data={weightChartData}>
+                  <defs>
+                    <linearGradient id="weightGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" />
                   <XAxis 
                     dataKey="date" 
-                    tick={{ fontSize: 12 }}
-                    className="text-muted-foreground"
+                    tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                    axisLine={{ stroke: 'hsl(var(--border))' }}
                     reversed={isRTL}
                   />
                   <YAxis 
                     domain={['auto', 'auto']}
-                    tick={{ fontSize: 12 }}
-                    className="text-muted-foreground"
+                    tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                    axisLine={{ stroke: 'hsl(var(--border))' }}
                     orientation={isRTL ? 'right' : 'left'}
                   />
                   <Tooltip 
                     contentStyle={{ 
                       backgroundColor: 'hsl(var(--card))',
                       border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px'
+                      borderRadius: '12px',
+                      boxShadow: '0 10px 40px rgba(0,0,0,0.1)'
                     }}
                   />
-                  <Line 
+                  <Area 
                     type="monotone" 
                     dataKey="weight" 
                     stroke="hsl(var(--primary))" 
-                    strokeWidth={2}
-                    dot={{ fill: 'hsl(var(--primary))' }}
+                    strokeWidth={3}
+                    fill="url(#weightGradient)"
+                    dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6, strokeWidth: 2 }}
                   />
-                </LineChart>
+                </AreaChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-[250px] flex items-center justify-center text-muted-foreground">
+              <div className="h-[280px] flex flex-col items-center justify-center text-muted-foreground">
+                <Scale className="h-12 w-12 mb-3 opacity-30" />
                 <p>{t.dashboard.noWeightData}</p>
               </div>
             )}
@@ -277,24 +334,33 @@ export default function Dashboard() {
         </Card>
 
         {/* Weekly Workouts */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">{t.dashboard.thisWeeksWorkouts}</CardTitle>
+        <Card className="overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-accent/5 to-transparent">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Zap className="h-5 w-5 text-accent" />
+              {t.dashboard.thisWeeksWorkouts}
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={workoutBarData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+          <CardContent className="pt-6">
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={workoutBarData} barSize={40}>
+                <defs>
+                  <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity={1}/>
+                    <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" vertical={false} />
                 <XAxis 
                   dataKey="day" 
-                  tick={{ fontSize: 12 }}
-                  className="text-muted-foreground"
+                  tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                  axisLine={{ stroke: 'hsl(var(--border))' }}
                   reversed={isRTL}
                 />
                 <YAxis 
                   domain={[0, 1]}
-                  tick={{ fontSize: 12 }}
-                  className="text-muted-foreground"
+                  tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                  axisLine={{ stroke: 'hsl(var(--border))' }}
                   tickFormatter={() => ''}
                   orientation={isRTL ? 'right' : 'left'}
                 />
@@ -302,14 +368,15 @@ export default function Dashboard() {
                   contentStyle={{ 
                     backgroundColor: 'hsl(var(--card))',
                     border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px'
+                    borderRadius: '12px',
+                    boxShadow: '0 10px 40px rgba(0,0,0,0.1)'
                   }}
                   formatter={(value: number) => [value ? t.workouts.completed : t.workouts.restDay, t.workouts.status]}
                 />
                 <Bar 
                   dataKey="workouts" 
-                  fill="hsl(var(--chart-2))" 
-                  radius={[4, 4, 0, 0]}
+                  fill="url(#barGradient)"
+                  radius={[8, 8, 0, 0]}
                 />
               </BarChart>
             </ResponsiveContainer>
@@ -320,13 +387,16 @@ export default function Dashboard() {
       {/* Nutrition & Activity Row */}
       <motion.div variants={item} className="grid gap-6 lg:grid-cols-2">
         {/* Today's Macros */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">{t.dashboard.todaysMacros}</CardTitle>
+        <Card className="overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-success/5 to-transparent">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Apple className="h-5 w-5 text-success" />
+              {t.dashboard.todaysMacros}
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-6">
-              <div className="w-32 h-32">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-8">
+              <div className="w-36 h-36 relative">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -335,8 +405,9 @@ export default function Dashboard() {
                       nameKey="name"
                       cx="50%"
                       cy="50%"
-                      innerRadius={30}
-                      outerRadius={50}
+                      innerRadius={40}
+                      outerRadius={60}
+                      strokeWidth={0}
                     >
                       {macroData.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={CHART_COLORS[index]} />
@@ -346,70 +417,85 @@ export default function Dashboard() {
                       contentStyle={{ 
                         backgroundColor: 'hsl(var(--card))',
                         border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px'
+                        borderRadius: '12px',
+                        boxShadow: '0 10px 40px rgba(0,0,0,0.1)'
                       }}
                       formatter={(_, __, props) => [`${props.payload.grams}${t.common.g}`, props.payload.name]}
                     />
                   </PieChart>
                 </ResponsiveContainer>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold">{todaysCalories}</p>
+                    <p className="text-xs text-muted-foreground">{t.common.kcal}</p>
+                  </div>
+                </div>
               </div>
-              <div className="flex-1 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: CHART_COLORS[0] }} />
-                    <span className="text-sm">{t.dashboard.protein}</span>
-                  </div>
-                  <span className="font-medium">{todaysProtein}{t.common.g}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: CHART_COLORS[1] }} />
-                    <span className="text-sm">{t.dashboard.carbs}</span>
-                  </div>
-                  <span className="font-medium">{todaysCarbs}{t.common.g}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: CHART_COLORS[2] }} />
-                    <span className="text-sm">{t.dashboard.fats}</span>
-                  </div>
-                  <span className="font-medium">{todaysFats}{t.common.g}</span>
-                </div>
+              <div className="flex-1 space-y-4">
+                {macroData.map((macro, index) => (
+                  <motion.div 
+                    key={macro.name}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="flex items-center justify-between p-3 rounded-xl bg-muted/30"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div 
+                        className="w-4 h-4 rounded-full shadow-sm" 
+                        style={{ backgroundColor: CHART_COLORS[index] }} 
+                      />
+                      <span className="text-sm font-medium">{macro.name}</span>
+                    </div>
+                    <span className="font-bold">{macro.grams}{t.common.g}</span>
+                  </motion.div>
+                ))}
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Recent Activity */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">{t.dashboard.recentWorkouts}</CardTitle>
-            <Button variant="ghost" size="sm" asChild>
+        <Card className="overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between bg-gradient-to-r from-primary/5 to-transparent">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Dumbbell className="h-5 w-5 text-primary" />
+              {t.dashboard.recentWorkouts}
+            </CardTitle>
+            <Button variant="ghost" size="sm" asChild className="text-primary">
               <Link to="/workouts">{t.common.viewAll}</Link>
             </Button>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             {recentWorkouts.length > 0 ? (
               <div className="space-y-4">
-                {recentWorkouts.map(workout => (
-                  <div key={workout.id} className="flex items-center gap-4">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10">
+                {recentWorkouts.map((workout, index) => (
+                  <motion.div 
+                    key={workout.id} 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="flex items-center gap-4 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20">
                       <Dumbbell className="h-5 w-5 text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">
+                      <p className="font-semibold truncate">
                         {workout.templateName || t.dashboard.customWorkout}
                       </p>
                       <p className="text-sm text-muted-foreground">
                         {formatDateShort(workout.date)} • {workout.exercises.length} {t.dashboard.exercises}
                       </p>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-6 text-muted-foreground">
-                <Dumbbell className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <div className="text-center py-8 text-muted-foreground">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-muted/50 flex items-center justify-center">
+                  <Dumbbell className="h-8 w-8 opacity-50" />
+                </div>
                 <p>{t.dashboard.noWorkoutsLogged}</p>
               </div>
             )}
