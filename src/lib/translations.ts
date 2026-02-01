@@ -76,6 +76,7 @@ export const translations = {
       protein: 'Protein',
       carbs: 'Carbs',
       fats: 'Fats',
+      keepItUp: 'Keep it up!',
     },
     
     // Workouts
@@ -217,6 +218,7 @@ export const translations = {
       current: 'Current',
       workouts: 'workouts',
       saveGoals: 'Save Goals',
+      achieveMore: 'Achieve more!',
     },
     
     // Reports
@@ -369,6 +371,7 @@ export const translations = {
       protein: 'بروتين',
       carbs: 'كربوهيدرات',
       fats: 'دهون',
+      keepItUp: 'استمر!',
     },
     
     // Workouts
@@ -510,6 +513,7 @@ export const translations = {
       current: 'الحالي',
       workouts: 'تمارين',
       saveGoals: 'حفظ الأهداف',
+      achieveMore: 'حقق المزيد!',
     },
     
     // Reports
