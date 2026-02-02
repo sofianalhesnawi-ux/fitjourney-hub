@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Target, Scale, Flame, Dumbbell, Activity, Check, Sparkles, Trophy } from 'lucide-react';
 import { getWeekStart } from '@/lib/utils';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { GoalCompleteCelebration } from '@/components/Celebration';
 
 export default function Goals() {
   const { data, updateGoals, t } = useFitTrack();
@@ -21,6 +22,13 @@ export default function Goals() {
   const weekStart = getWeekStart();
   const workoutsThisWeek = data.workoutLogs.filter(log => new Date(log.date) >= weekStart).length;
   const latestBodyComp = [...data.bodyCompositions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+  
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [savedGoalName, setSavedGoalName] = useState('');
+
+  // Parallax setup
+  const { scrollY } = useScroll();
+  const parallaxY = useTransform(scrollY, [0, 300], [0, -20]);
 
   const saveGoals = () => { 
     updateGoals({ 
@@ -29,7 +37,9 @@ export default function Goals() {
       weeklyWorkouts: weeklyWorkouts ? parseInt(weeklyWorkouts) : undefined, 
       targetBodyFat: targetBodyFat ? parseFloat(targetBodyFat) : undefined, 
       targetMuscleMass: targetMuscleMass ? parseFloat(targetMuscleMass) : undefined 
-    }); 
+    });
+    setSavedGoalName('Goals Updated Successfully!');
+    setShowCelebration(true);
   };
 
   const calculateWeightProgress = () => { 
@@ -64,7 +74,11 @@ export default function Goals() {
       initial="hidden" 
       animate="show"
     >
-      <motion.div variants={item} className="flex items-center justify-between">
+      <motion.div 
+        variants={item} 
+        className="flex items-center justify-between"
+        style={{ y: parallaxY }}
+      >
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
             <span className="gradient-text">{t.goals.title}</span>
@@ -81,83 +95,89 @@ export default function Goals() {
       </motion.div>
 
       <motion.div variants={item} className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="bg-gradient-to-br from-primary/5 via-card to-accent/5 overflow-hidden">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{t.goals.weightGoal}</CardTitle>
-              <div className="p-2 rounded-xl bg-primary/10">
-                <Scale className="h-4 w-4 text-primary" />
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {data.goals.targetWeight ? (
-              <>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold">{currentWeight || '—'}</span>
-                  <span className="text-muted-foreground">→ {data.goals.targetWeight} {t.common.kg}</span>
+        <motion.div whileHover={{ y: -5, scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
+          <Card className="bg-gradient-to-br from-primary/5 via-card to-accent/5 overflow-hidden h-full">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-muted-foreground">{t.goals.weightGoal}</CardTitle>
+                <div className="p-2 rounded-xl bg-primary/10">
+                  <Scale className="h-4 w-4 text-primary" />
                 </div>
-                {weightProgress !== null && (
-                  <div className="mt-4">
-                    <Progress value={weightProgress} className="h-2" />
-                    <p className="text-xs text-muted-foreground mt-2">{weightProgress.toFixed(0)}% {t.common.complete}</p>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {data.goals.targetWeight ? (
+                <>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-bold">{currentWeight || '—'}</span>
+                    <span className="text-muted-foreground">→ {data.goals.targetWeight} {t.common.kg}</span>
                   </div>
-                )}
-              </>
-            ) : (
-              <p className="text-muted-foreground">{t.goals.noGoalSet}</p>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="overflow-hidden">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{t.goals.weeklyWorkouts}</CardTitle>
-              <div className="p-2 rounded-xl bg-accent/10">
-                <Dumbbell className="h-4 w-4 text-accent" />
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {data.goals.weeklyWorkouts ? (
-              <>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold">{workoutsThisWeek}</span>
-                  <span className="text-muted-foreground">/ {data.goals.weeklyWorkouts} {t.goals.thisWeek}</span>
-                </div>
-                <div className="mt-4">
-                  <Progress value={Math.min(workoutProgress, 100)} className="h-2" />
-                  {workoutsThisWeek >= data.goals.weeklyWorkouts && (
-                    <p className="text-xs text-success mt-2 flex items-center gap-1">
-                      <Check className="h-3 w-3" /> {t.goals.goalReached}
-                    </p>
+                  {weightProgress !== null && (
+                    <div className="mt-4">
+                      <Progress value={weightProgress} className="h-2" />
+                      <p className="text-xs text-muted-foreground mt-2">{weightProgress.toFixed(0)}% {t.common.complete}</p>
+                    </div>
                   )}
-                </div>
-              </>
-            ) : (
-              <p className="text-muted-foreground">{t.goals.noGoalSet}</p>
-            )}
-          </CardContent>
-        </Card>
+                </>
+              ) : (
+                <p className="text-muted-foreground">{t.goals.noGoalSet}</p>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
 
-        <Card className="overflow-hidden">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{t.goals.dailyCalories}</CardTitle>
-              <div className="p-2 rounded-xl bg-warning/10">
-                <Flame className="h-4 w-4 text-warning" />
+        <motion.div whileHover={{ y: -5, scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
+          <Card className="overflow-hidden h-full">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-muted-foreground">{t.goals.weeklyWorkouts}</CardTitle>
+                <div className="p-2 rounded-xl bg-accent/10">
+                  <Dumbbell className="h-4 w-4 text-accent" />
+                </div>
               </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {data.goals.dailyCalories ? (
-              <div className="text-3xl font-bold">{data.goals.dailyCalories} {t.common.kcal}</div>
-            ) : (
-              <p className="text-muted-foreground">{t.goals.noGoalSet}</p>
-            )}
-          </CardContent>
-        </Card>
+            </CardHeader>
+            <CardContent>
+              {data.goals.weeklyWorkouts ? (
+                <>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-bold">{workoutsThisWeek}</span>
+                    <span className="text-muted-foreground">/ {data.goals.weeklyWorkouts} {t.goals.thisWeek}</span>
+                  </div>
+                  <div className="mt-4">
+                    <Progress value={Math.min(workoutProgress, 100)} className="h-2" />
+                    {workoutsThisWeek >= data.goals.weeklyWorkouts && (
+                      <p className="text-xs text-success mt-2 flex items-center gap-1">
+                        <Check className="h-3 w-3" /> {t.goals.goalReached}
+                      </p>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <p className="text-muted-foreground">{t.goals.noGoalSet}</p>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div whileHover={{ y: -5, scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
+          <Card className="overflow-hidden h-full">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-muted-foreground">{t.goals.dailyCalories}</CardTitle>
+                <div className="p-2 rounded-xl bg-warning/10">
+                  <Flame className="h-4 w-4 text-warning" />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {data.goals.dailyCalories ? (
+                <div className="text-3xl font-bold">{data.goals.dailyCalories} {t.common.kcal}</div>
+              ) : (
+                <p className="text-muted-foreground">{t.goals.noGoalSet}</p>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
       </motion.div>
 
       <motion.div variants={item}>
@@ -269,6 +289,13 @@ export default function Goals() {
           </CardContent>
         </Card>
       </motion.div>
+      
+      {/* Goal Saved Celebration */}
+      <GoalCompleteCelebration 
+        isVisible={showCelebration} 
+        goalName={savedGoalName}
+        onClose={() => setShowCelebration(false)} 
+      />
     </motion.div>
   );
 }
