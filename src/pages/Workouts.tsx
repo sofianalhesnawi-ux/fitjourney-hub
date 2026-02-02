@@ -10,7 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Plus, Dumbbell, Play, Trash2, Edit2, Calendar, ChevronRight, ChevronLeft, X } from 'lucide-react';
 import { cn, generateId, formatDate, getToday } from '@/lib/utils';
 import type { WorkoutTemplate, Exercise, WorkoutLog, ExerciseLog, SetLog } from '@/types/fitness';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { WorkoutCompleteCelebration, CheckmarkCelebration } from '@/components/Celebration';
 
 export default function Workouts() {
   const { data, addWorkoutTemplate, updateWorkoutTemplate, deleteWorkoutTemplate, addWorkoutLog, t, isRTL } = useFitTrack();
@@ -27,6 +28,8 @@ export default function Workouts() {
   const [logDate, setLogDate] = useState(getToday());
   const [logExercises, setLogExercises] = useState<ExerciseLog[]>([]);
   const [logNotes, setLogNotes] = useState('');
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [completedSets, setCompletedSets] = useState<Record<string, boolean>>({});
 
   const resetTemplateForm = () => { setTemplateName(''); setTemplateExercises([]); setEditingTemplate(null); };
   const openEditTemplate = (template: WorkoutTemplate) => { setEditingTemplate(template); setTemplateName(template.name); setTemplateExercises([...template.exercises]); setIsTemplateDialogOpen(true); };
@@ -48,12 +51,30 @@ export default function Workouts() {
     setIsLogDialogOpen(true);
   };
 
-  const updateLogSet = (exerciseIndex: number, setIndex: number, field: keyof SetLog, value: number | boolean) => { const updated = [...logExercises]; updated[exerciseIndex].sets[setIndex] = { ...updated[exerciseIndex].sets[setIndex], [field]: value }; setLogExercises(updated); };
-  const toggleSetComplete = (exerciseIndex: number, setIndex: number) => { updateLogSet(exerciseIndex, setIndex, 'completed', !logExercises[exerciseIndex].sets[setIndex].completed); };
+  const updateLogSet = (exerciseIndex: number, setIndex: number, field: keyof SetLog, value: number | boolean) => { 
+    const updated = [...logExercises]; 
+    updated[exerciseIndex].sets[setIndex] = { ...updated[exerciseIndex].sets[setIndex], [field]: value }; 
+    setLogExercises(updated); 
+  };
+  
+  const toggleSetComplete = (exerciseIndex: number, setIndex: number) => { 
+    const setKey = `${exerciseIndex}-${setIndex}`;
+    const isCompleting = !logExercises[exerciseIndex].sets[setIndex].completed;
+    
+    if (isCompleting) {
+      setCompletedSets(prev => ({ ...prev, [setKey]: true }));
+      setTimeout(() => setCompletedSets(prev => ({ ...prev, [setKey]: false })), 1500);
+    }
+    
+    updateLogSet(exerciseIndex, setIndex, 'completed', isCompleting); 
+  };
 
   const saveWorkoutLog = () => {
     const log: WorkoutLog = { id: generateId(), templateId: selectedTemplate?.id, templateName: selectedTemplate?.name, date: logDate, exercises: logExercises, notes: logNotes || undefined, createdAt: new Date().toISOString() };
-    addWorkoutLog(log); setIsLogDialogOpen(false); setSelectedTemplate(null);
+    addWorkoutLog(log); 
+    setIsLogDialogOpen(false); 
+    setSelectedTemplate(null);
+    setShowCelebration(true);
   };
 
   const sortedLogs = [...data.workoutLogs].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -152,16 +173,38 @@ export default function Workouts() {
                 <div key={exercise.id} className="p-3 border rounded-lg">
                   <h4 className="font-medium mb-3">{exercise.name}</h4>
                   <div className="space-y-2">
-                    {exercise.sets.map((set, setIndex) => (
-                      <div key={setIndex} className="flex items-center gap-3">
-                        <span className="text-sm text-muted-foreground w-12">{t.workouts.set} {setIndex + 1}</span>
-                        <Input type="number" placeholder={t.workouts.weight} value={set.weight || ''} onChange={(e) => updateLogSet(exerciseIndex, setIndex, 'weight', parseFloat(e.target.value))} className="w-20" />
-                        <span className="text-muted-foreground">{t.common.kg}</span>
-                        <Input type="number" placeholder={t.workouts.reps} value={set.reps} onChange={(e) => updateLogSet(exerciseIndex, setIndex, 'reps', parseInt(e.target.value))} className="w-16" />
-                        <span className="text-muted-foreground">{t.workouts.reps}</span>
-                        <Button size="sm" variant={set.completed ? 'default' : 'outline'} onClick={() => toggleSetComplete(exerciseIndex, setIndex)}>{set.completed ? '✓' : '○'}</Button>
-                      </div>
-                    ))}
+                    {exercise.sets.map((set, setIndex) => {
+                      const setKey = `${exerciseIndex}-${setIndex}`;
+                      return (
+                        <div key={setIndex} className="flex items-center gap-3">
+                          <span className="text-sm text-muted-foreground w-12">{t.workouts.set} {setIndex + 1}</span>
+                          <Input type="number" placeholder={t.workouts.weight} value={set.weight || ''} onChange={(e) => updateLogSet(exerciseIndex, setIndex, 'weight', parseFloat(e.target.value))} className="w-20" />
+                          <span className="text-muted-foreground">{t.common.kg}</span>
+                          <Input type="number" placeholder={t.workouts.reps} value={set.reps} onChange={(e) => updateLogSet(exerciseIndex, setIndex, 'reps', parseInt(e.target.value))} className="w-16" />
+                          <span className="text-muted-foreground">{t.workouts.reps}</span>
+                          <div className="relative">
+                            <Button 
+                              size="sm" 
+                              variant={set.completed ? 'default' : 'outline'} 
+                              onClick={() => toggleSetComplete(exerciseIndex, setIndex)}
+                              className="transition-all duration-200"
+                            >
+                              {set.completed ? '✓' : '○'}
+                            </Button>
+                            {completedSets[setKey] && (
+                              <motion.div 
+                                className="absolute -top-1 -right-1"
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                exit={{ scale: 0 }}
+                              >
+                                <CheckmarkCelebration isVisible size="sm" />
+                              </motion.div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               ))}
@@ -171,6 +214,12 @@ export default function Workouts() {
           </div>
         </DialogContent>
       </Dialog>
+      
+      {/* Workout Complete Celebration */}
+      <WorkoutCompleteCelebration 
+        isVisible={showCelebration} 
+        onClose={() => setShowCelebration(false)} 
+      />
     </motion.div>
   );
 }

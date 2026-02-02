@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useFitTrack } from '@/contexts/FitTrackContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,8 +16,6 @@ import {
   Zap
 } from 'lucide-react';
 import { 
-  LineChart, 
-  Line, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -32,7 +31,9 @@ import {
 } from 'recharts';
 import { Link } from 'react-router-dom';
 import { formatDateShort, getToday, getWeekStart } from '@/lib/utils';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { AnimatedChartContainer, AnimatedNumber } from '@/components/AnimatedChart';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const CHART_COLORS = [
   'hsl(var(--chart-1))',
@@ -118,6 +119,36 @@ export default function Dashboard() {
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 3);
 
+  // Chart view state for animated transitions
+  const [chartView, setChartView] = useState<'week' | 'month'>('week');
+  
+  // Get monthly data for chart toggle
+  const monthlyWeightData = sortedWeights
+    .slice(0, 30)
+    .reverse()
+    .map(entry => ({
+      date: formatDateShort(entry.date),
+      weight: entry.weight
+    }));
+    
+  const weeklyWeightData = sortedWeights
+    .slice(0, 7)
+    .reverse()
+    .map(entry => ({
+      date: formatDateShort(entry.date),
+      weight: entry.weight
+    }));
+  
+  const activeWeightData = chartView === 'week' ? weeklyWeightData : monthlyWeightData;
+
+  // Scroll-based parallax setup
+  const { scrollY } = useScroll();
+  const parallaxY1 = useTransform(scrollY, [0, 500], [0, -30]);
+  const parallaxY2 = useTransform(scrollY, [0, 500], [0, -20]);
+  const parallaxY3 = useTransform(scrollY, [0, 500], [0, -15]);
+  const parallaxScale = useTransform(scrollY, [0, 300], [1, 0.98]);
+  const parallaxOpacity = useTransform(scrollY, [0, 400], [1, 0.8]);
+
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -148,7 +179,7 @@ export default function Dashboard() {
   }: {
     title: string;
     icon: React.ElementType;
-    value: string | number;
+    value: React.ReactNode;
     subtitle?: string;
     trend?: 'up' | 'down';
     trendValue?: string;
@@ -189,8 +220,12 @@ export default function Dashboard() {
       initial="hidden"
       animate="show"
     >
-      {/* Header */}
-      <motion.div variants={item} className="flex items-center justify-between">
+      {/* Header with parallax */}
+      <motion.div 
+        variants={item} 
+        className="flex items-center justify-between"
+        style={{ y: parallaxY1, scale: parallaxScale }}
+      >
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
             <span className="gradient-text">{t.dashboard.title}</span>
@@ -206,48 +241,62 @@ export default function Dashboard() {
         </motion.div>
       </motion.div>
 
-      {/* Quick Stats */}
-      <motion.div variants={item} className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title={t.dashboard.currentWeight}
-          icon={Scale}
-          value={currentWeight ? `${currentWeight} ${t.common.kg}` : '—'}
-          trend={weightChange !== null ? (weightChange > 0 ? 'up' : 'down') : undefined}
-          trendValue={weightChange !== null ? `${weightChange > 0 ? '+' : ''}${weightChange.toFixed(1)} ${t.common.kg}` : undefined}
-          gradient
-        />
+      {/* Quick Stats with parallax */}
+      <motion.div 
+        variants={item} 
+        className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+        style={{ y: parallaxY2, opacity: parallaxOpacity }}
+      >
+        <motion.div whileHover={{ y: -5, scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
+          <StatCard
+            title={t.dashboard.currentWeight}
+            icon={Scale}
+            value={currentWeight ? <><AnimatedNumber value={currentWeight} /> {t.common.kg}</> : '—'}
+            trend={weightChange !== null ? (weightChange > 0 ? 'up' : 'down') : undefined}
+            trendValue={weightChange !== null ? `${weightChange > 0 ? '+' : ''}${weightChange.toFixed(1)} ${t.common.kg}` : undefined}
+            gradient
+          />
+        </motion.div>
 
-        <StatCard
-          title={t.dashboard.bodyFat}
-          icon={Activity}
-          value={latestBodyComp?.bodyFat ? `${latestBodyComp.bodyFat}%` : '—'}
-          subtitle={latestBodyComp ? `${t.dashboard.updated} ${formatDateShort(latestBodyComp.date)}` : t.common.noData}
-        />
+        <motion.div whileHover={{ y: -5, scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
+          <StatCard
+            title={t.dashboard.bodyFat}
+            icon={Activity}
+            value={latestBodyComp?.bodyFat ? `${latestBodyComp.bodyFat}%` : '—'}
+            subtitle={latestBodyComp ? `${t.dashboard.updated} ${formatDateShort(latestBodyComp.date)}` : t.common.noData}
+          />
+        </motion.div>
 
-        <StatCard
-          title={t.dashboard.workoutsThisWeek}
-          icon={Dumbbell}
-          value={workoutsThisWeek}
-          subtitle={t.dashboard.goalPerWeek.replace('{0}', String(data.goals.weeklyWorkouts || 4))}
-        />
+        <motion.div whileHover={{ y: -5, scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
+          <StatCard
+            title={t.dashboard.workoutsThisWeek}
+            icon={Dumbbell}
+            value={<AnimatedNumber value={workoutsThisWeek} />}
+            subtitle={t.dashboard.goalPerWeek.replace('{0}', String(data.goals.weeklyWorkouts || 4))}
+          />
+        </motion.div>
 
-        <Card className="bg-gradient-to-br from-primary/5 via-card to-accent/5">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{t.dashboard.todaysCalories}</CardTitle>
-            <div className="p-2 rounded-xl bg-warning/10">
-              <Flame className="h-4 w-4 text-warning" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold tracking-tight">{todaysCalories}</div>
-            <div className="mt-3 space-y-2">
-              <Progress value={calorieProgress} className="h-2" />
-              <p className="text-xs text-muted-foreground">
-                {todaysCalories} / {calorieGoal} {t.common.kcal}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <motion.div whileHover={{ y: -5, scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
+          <Card className="bg-gradient-to-br from-primary/5 via-card to-accent/5">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">{t.dashboard.todaysCalories}</CardTitle>
+              <div className="p-2 rounded-xl bg-warning/10">
+                <Flame className="h-4 w-4 text-warning" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold tracking-tight">
+                <AnimatedNumber value={todaysCalories} />
+              </div>
+              <div className="mt-3 space-y-2">
+                <Progress value={calorieProgress} className="h-2" />
+                <p className="text-xs text-muted-foreground">
+                  {todaysCalories} / {calorieGoal} {t.common.kcal}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       </motion.div>
 
       {/* Quick Actions */}
@@ -272,64 +321,78 @@ export default function Dashboard() {
         </Button>
       </motion.div>
 
-      {/* Charts Row */}
-      <motion.div variants={item} className="grid gap-6 lg:grid-cols-2">
-        {/* Weight Trend */}
+      {/* Charts Row with parallax */}
+      <motion.div 
+        variants={item} 
+        className="grid gap-6 lg:grid-cols-2"
+        style={{ y: parallaxY3 }}
+      >
+        {/* Weight Trend with animated view toggle */}
         <Card className="overflow-hidden">
           <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Scale className="h-5 w-5 text-primary" />
-              {t.dashboard.weightTrend}
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Scale className="h-5 w-5 text-primary" />
+                {t.dashboard.weightTrend}
+              </CardTitle>
+              <Tabs value={chartView} onValueChange={(v) => setChartView(v as 'week' | 'month')}>
+                <TabsList className="h-8">
+                  <TabsTrigger value="week" className="text-xs px-3 h-6">{isRTL ? 'أسبوع' : 'Week'}</TabsTrigger>
+                  <TabsTrigger value="month" className="text-xs px-3 h-6">{isRTL ? 'شهر' : 'Month'}</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
           </CardHeader>
           <CardContent className="pt-6">
-            {weightChartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={280}>
-                <AreaChart data={weightChartData}>
-                  <defs>
-                    <linearGradient id="weightGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" />
-                  <XAxis 
-                    dataKey="date" 
-                    tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-                    axisLine={{ stroke: 'hsl(var(--border))' }}
-                    reversed={isRTL}
-                  />
-                  <YAxis 
-                    domain={['auto', 'auto']}
-                    tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-                    axisLine={{ stroke: 'hsl(var(--border))' }}
-                    orientation={isRTL ? 'right' : 'left'}
-                  />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '12px',
-                      boxShadow: '0 10px 40px rgba(0,0,0,0.1)'
-                    }}
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="weight" 
-                    stroke="hsl(var(--primary))" 
-                    strokeWidth={3}
-                    fill="url(#weightGradient)"
-                    dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6, strokeWidth: 2 }}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-[280px] flex flex-col items-center justify-center text-muted-foreground">
-                <Scale className="h-12 w-12 mb-3 opacity-30" />
-                <p>{t.dashboard.noWeightData}</p>
-              </div>
-            )}
+            <AnimatedChartContainer chartKey={chartView}>
+              {activeWeightData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={280}>
+                  <AreaChart data={activeWeightData}>
+                    <defs>
+                      <linearGradient id="weightGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" />
+                    <XAxis 
+                      dataKey="date" 
+                      tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                      axisLine={{ stroke: 'hsl(var(--border))' }}
+                      reversed={isRTL}
+                    />
+                    <YAxis 
+                      domain={['auto', 'auto']}
+                      tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                      axisLine={{ stroke: 'hsl(var(--border))' }}
+                      orientation={isRTL ? 'right' : 'left'}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--card))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '12px',
+                        boxShadow: '0 10px 40px rgba(0,0,0,0.1)'
+                      }}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="weight" 
+                      stroke="hsl(var(--primary))" 
+                      strokeWidth={3}
+                      fill="url(#weightGradient)"
+                      dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
+                      activeDot={{ r: 6, strokeWidth: 2 }}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-[280px] flex flex-col items-center justify-center text-muted-foreground">
+                  <Scale className="h-12 w-12 mb-3 opacity-30" />
+                  <p>{t.dashboard.noWeightData}</p>
+                </div>
+              )}
+            </AnimatedChartContainer>
           </CardContent>
         </Card>
 
