@@ -77,6 +77,16 @@ export const translations = {
       carbs: 'Carbs',
       fats: 'Fats',
       keepItUp: 'Keep it up!',
+      day: 'day',
+      days: 'days',
+      streak: 'streak',
+    },
+    
+    // Floating Action Button
+    fab: {
+      logWorkout: 'Log Workout',
+      logMeal: 'Log Meal',
+      logWeight: 'Log Weight',
     },
     
     // Workouts
@@ -372,6 +382,16 @@ export const translations = {
       carbs: 'كربوهيدرات',
       fats: 'دهون',
       keepItUp: 'استمر!',
+      day: 'يوم',
+      days: 'أيام',
+      streak: 'متتالية',
+    },
+    
+    // Floating Action Button
+    fab: {
+      logWorkout: 'تسجيل تمرين',
+      logMeal: 'تسجيل وجبة',
+      logWeight: 'تسجيل الوزن',
     },
     
     // Workouts
