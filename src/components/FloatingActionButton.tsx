@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, X, Dumbbell, Apple, Scale } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -12,6 +12,14 @@ interface FABAction {
   color: string;
   bgColor: string;
 }
+
+// Haptic feedback utility
+const triggerHaptic = (style: 'light' | 'medium' | 'heavy' = 'medium') => {
+  if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+    const patterns = { light: 10, medium: 25, heavy: 50 };
+    navigator.vibrate(patterns[style]);
+  }
+};
 
 export function FloatingActionButton() {
   const [isOpen, setIsOpen] = useState(false);
@@ -42,10 +50,16 @@ export function FloatingActionButton() {
     },
   ];
 
-  const handleAction = (path: string) => {
+  const handleAction = useCallback((path: string) => {
+    triggerHaptic('light');
     setIsOpen(false);
     navigate(path);
-  };
+  }, [navigate]);
+
+  const handleToggle = useCallback(() => {
+    triggerHaptic(isOpen ? 'light' : 'medium');
+    setIsOpen(!isOpen);
+  }, [isOpen]);
 
   return (
     <>
@@ -107,7 +121,7 @@ export function FloatingActionButton() {
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={handleToggle}
           className={cn(
             "relative flex items-center justify-center w-14 h-14 rounded-2xl",
             "bg-gradient-to-br from-primary to-accent",
