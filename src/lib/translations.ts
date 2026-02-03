@@ -80,6 +80,7 @@ export const translations = {
       day: 'day',
       days: 'days',
       streak: 'streak',
+      streakTooltip: '{current}/{goal} workouts this week. The ring shows your weekly goal progress.',
     },
     
     // Floating Action Button
@@ -385,6 +386,7 @@ export const translations = {
       day: 'يوم',
       days: 'أيام',
       streak: 'متتالية',
+      streakTooltip: '{current}/{goal} تمارين هذا الأسبوع. الحلقة تُظهر تقدم هدفك الأسبوعي.',
     },
     
     // Floating Action Button

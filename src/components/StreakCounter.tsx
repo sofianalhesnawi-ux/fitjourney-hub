@@ -3,6 +3,12 @@ import { Flame } from 'lucide-react';
 import { useFitTrack } from '@/contexts/FitTrackContext';
 import { useMemo } from 'react';
 import { getWeekStart } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export function StreakCounter() {
   const { data, t } = useFitTrack();
@@ -78,12 +84,21 @@ export function StreakCounter() {
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (weeklyProgress.percentage / 100) * circumference;
 
+  // Tooltip text
+  const tooltipText = t.dashboard.streakTooltip
+    ?.replace('{current}', String(weeklyProgress.current))
+    ?.replace('{goal}', String(weeklyProgress.goal))
+    || `${weeklyProgress.current}/${weeklyProgress.goal} workouts completed this week. The ring shows your weekly goal progress.`;
+
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="relative flex items-center gap-3"
-    >
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative flex items-center gap-3 cursor-help"
+          >
       {/* Progress ring container */}
       <div className="relative">
         {/* SVG Progress Ring */}
@@ -192,6 +207,12 @@ export function StreakCounter() {
           {weeklyProgress.current}/{weeklyProgress.goal} {t.goals.thisWeek}
         </span>
       </div>
-    </motion.div>
+          </motion.div>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="max-w-[200px] text-center">
+          <p className="text-xs">{tooltipText}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
