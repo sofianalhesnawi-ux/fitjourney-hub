@@ -14,11 +14,11 @@ import {
   Moon,
   Menu,
   X,
-  Globe,
-  Sparkles
+  Globe
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { FloatingActionButton } from '@/components/FloatingActionButton';
 
 const SIDEBAR_COLLAPSED_KEY = 'fittrack-sidebar-collapsed';
 
@@ -328,6 +328,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
           {children}
         </div>
       </main>
+
+      {/* Floating Action Button */}
+      <FloatingActionButton />
 
       {/* Mobile Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 bg-card/80 backdrop-blur-xl border-t border-border/50 lg:hidden safe-area-pb">

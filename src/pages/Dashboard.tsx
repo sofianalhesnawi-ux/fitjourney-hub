@@ -34,6 +34,7 @@ import { formatDateShort, getToday, getWeekStart } from '@/lib/utils';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { AnimatedChartContainer, AnimatedNumber } from '@/components/AnimatedChart';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { StreakCounter } from '@/components/StreakCounter';
 
 const CHART_COLORS = [
   'hsl(var(--chart-1))',
@@ -232,13 +233,16 @@ export default function Dashboard() {
           </h1>
           <p className="text-muted-foreground mt-1">{t.dashboard.subtitle}</p>
         </div>
-        <motion.div 
-          whileHover={{ scale: 1.05, rotate: 5 }}
-          className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-2xl bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20"
-        >
-          <Sparkles className="h-4 w-4 text-primary" />
-          <span className="text-sm font-medium text-primary">{t.dashboard.keepItUp || 'Keep it up!'}</span>
-        </motion.div>
+        <div className="flex items-center gap-4">
+          <StreakCounter />
+          <motion.div 
+            whileHover={{ scale: 1.05, rotate: 5 }}
+            className="hidden lg:flex items-center gap-2 px-4 py-2 rounded-2xl bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20"
+          >
+            <Sparkles className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium text-primary">{t.dashboard.keepItUp || 'Keep it up!'}</span>
+          </motion.div>
+        </div>
       </motion.div>
 
       {/* Quick Stats with parallax */}
