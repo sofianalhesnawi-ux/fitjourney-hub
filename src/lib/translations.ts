@@ -81,6 +81,23 @@ export const translations = {
       days: 'days',
       streak: 'streak',
       streakTooltip: '{current}/{goal} workouts this week. The ring shows your weekly goal progress.',
+      personalBest: 'Personal Best!',
+    },
+    
+    // Onboarding
+    onboarding: {
+      streakTitle: '🔥 Streak Counter',
+      streakDesc: 'Track your consecutive workout days. The ring around the flame shows your weekly workout goal progress.',
+      fabTitle: '⚡ Quick Actions',
+      fabDesc: 'Tap the floating button at the bottom to quickly log workouts, meals, or weight entries from any page.',
+      goalsTitle: '🎯 Set Your Goals',
+      goalsDesc: 'Define weekly workout targets, calorie goals, and body composition targets to track your progress.',
+      reportsTitle: '📊 Progress Reports',
+      reportsDesc: 'View detailed analytics of your fitness journey with charts, trends, and personal records.',
+      next: 'Next',
+      prev: 'Back',
+      skip: 'Skip tutorial',
+      getStarted: 'Get Started',
     },
     
     // Floating Action Button
@@ -387,6 +404,23 @@ export const translations = {
       days: 'أيام',
       streak: 'متتالية',
       streakTooltip: '{current}/{goal} تمارين هذا الأسبوع. الحلقة تُظهر تقدم هدفك الأسبوعي.',
+      personalBest: 'أفضل رقم شخصي!',
+    },
+    
+    // Onboarding
+    onboarding: {
+      streakTitle: '🔥 عداد المتتالية',
+      streakDesc: 'تتبع أيام التمرين المتتالية. الحلقة حول اللهب تُظهر تقدم هدف التمارين الأسبوعي.',
+      fabTitle: '⚡ إجراءات سريعة',
+      fabDesc: 'اضغط على الزر العائم في الأسفل لتسجيل التمارين والوجبات والوزن بسرعة من أي صفحة.',
+      goalsTitle: '🎯 حدد أهدافك',
+      goalsDesc: 'حدد أهداف التمارين الأسبوعية والسعرات وتركيب الجسم لتتبع تقدمك.',
+      reportsTitle: '📊 تقارير التقدم',
+      reportsDesc: 'عرض تحليلات مفصلة لرحلتك الرياضية مع الرسوم البيانية والاتجاهات والأرقام القياسية.',
+      next: 'التالي',
+      prev: 'رجوع',
+      skip: 'تخطي الجولة',
+      getStarted: 'ابدأ الآن',
     },
     
     // Floating Action Button
