@@ -10,7 +10,8 @@ import type {
   ProgressPhoto,
   Goals,
   UserSettings,
-  FoodItem
+  FoodItem,
+  WaterEntry
 } from '@/types/fitness';
 
 const STORAGE_KEY = 'fittrack-data';
@@ -23,6 +24,7 @@ const defaultData: FitTrackData = {
   bodyCompositions: [],
   bodyMeasurements: [],
   progressPhotos: [],
+  waterEntries: [],
   goals: {},
   settings: { theme: 'system', units: 'metric', language: 'en' },
   frequentFoods: []
@@ -213,6 +215,28 @@ export function useFitTrackData() {
     });
   }, []);
 
+  // Water Entries
+  const addWaterEntry = useCallback((entry: WaterEntry) => {
+    setData(prev => ({
+      ...prev,
+      waterEntries: [...prev.waterEntries, entry]
+    }));
+  }, []);
+
+  const updateWaterEntry = useCallback((entry: WaterEntry) => {
+    setData(prev => ({
+      ...prev,
+      waterEntries: prev.waterEntries.map(w => w.id === entry.id ? entry : w)
+    }));
+  }, []);
+
+  const deleteWaterEntry = useCallback((id: string) => {
+    setData(prev => ({
+      ...prev,
+      waterEntries: prev.waterEntries.filter(w => w.id !== id)
+    }));
+  }, []);
+
   // Export/Import
   const exportData = useCallback(() => {
     const dataStr = JSON.stringify(data, null, 2);
@@ -244,6 +268,7 @@ export function useFitTrackData() {
           bodyCompositions: [...prev.bodyCompositions, ...(imported.bodyCompositions || [])],
           bodyMeasurements: [...prev.bodyMeasurements, ...(imported.bodyMeasurements || [])],
           progressPhotos: [...prev.progressPhotos, ...(imported.progressPhotos || [])],
+          waterEntries: [...prev.waterEntries, ...(imported.waterEntries || [])],
           goals: { ...prev.goals, ...imported.goals },
           settings: { ...prev.settings, ...imported.settings },
           frequentFoods: [...prev.frequentFoods, ...(imported.frequentFoods || [])]
@@ -289,6 +314,10 @@ export function useFitTrackData() {
     // Progress Photos
     addProgressPhoto,
     deleteProgressPhoto,
+    // Water
+    addWaterEntry,
+    updateWaterEntry,
+    deleteWaterEntry,
     // Goals
     updateGoals,
     // Settings
