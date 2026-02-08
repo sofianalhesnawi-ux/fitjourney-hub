@@ -35,6 +35,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { AnimatedChartContainer, AnimatedNumber } from '@/components/AnimatedChart';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { StreakCounter } from '@/components/StreakCounter';
+import { PersonalBestBadge } from '@/components/PersonalBestBadge';
 
 const CHART_COLORS = [
   'hsl(var(--chart-1))',
@@ -234,6 +235,7 @@ export default function Dashboard() {
           <p className="text-muted-foreground mt-1">{t.dashboard.subtitle}</p>
         </div>
         <div className="flex items-center gap-4">
+          <PersonalBestBadge />
           <StreakCounter />
           <motion.div 
             whileHover={{ scale: 1.05, rotate: 5 }}
