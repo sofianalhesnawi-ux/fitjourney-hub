@@ -46,6 +46,14 @@ export interface FoodItem {
   protein: number;
   carbs: number;
   fats: number;
+  servingSize?: string;
+}
+
+export interface WaterEntry {
+  id: string;
+  date: string;
+  glasses: number;
+  createdAt: string;
 }
 
 export interface Meal {
@@ -102,6 +110,7 @@ export interface Goals {
   weeklyWorkouts?: number;
   targetBodyFat?: number;
   targetMuscleMass?: number;
+  dailyWaterGlasses?: number;
 }
 
 export interface UserSettings {
@@ -118,6 +127,7 @@ export interface FitTrackData {
   bodyCompositions: BodyComposition[];
   bodyMeasurements: BodyMeasurement[];
   progressPhotos: ProgressPhoto[];
+  waterEntries: WaterEntry[];
   goals: Goals;
   settings: UserSettings;
   frequentFoods: FoodItem[];
