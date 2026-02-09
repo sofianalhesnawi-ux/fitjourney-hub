@@ -180,6 +180,16 @@ export const translations = {
       avgPerMeal: 'Avg per meal',
       waterGoal: 'Water Goal',
       of: 'of',
+      editMacroGoals: 'Edit Macro Goals',
+      proteinGoal: 'Protein Goal',
+      carbsGoal: 'Carbs Goal',
+      fatsGoal: 'Fats Goal',
+      saveGoals: 'Save Goals',
+      editMeal: 'Edit Meal',
+      deleteMealConfirm: 'Are you sure you want to delete this meal?',
+      deleteMealTitle: 'Delete Meal',
+      deleteMealDesc: 'This action cannot be undone.',
+      updateMeal: 'Update Meal',
     },
     
     // Body Metrics
@@ -516,6 +526,16 @@ export const translations = {
       avgPerMeal: 'متوسط لكل وجبة',
       waterGoal: 'هدف الماء',
       of: 'من',
+      editMacroGoals: 'تعديل أهداف الماكرو',
+      proteinGoal: 'هدف البروتين',
+      carbsGoal: 'هدف الكربوهيدرات',
+      fatsGoal: 'هدف الدهون',
+      saveGoals: 'حفظ الأهداف',
+      editMeal: 'تعديل الوجبة',
+      deleteMealConfirm: 'هل أنت متأكد من حذف هذه الوجبة؟',
+      deleteMealTitle: 'حذف الوجبة',
+      deleteMealDesc: 'لا يمكن التراجع عن هذا الإجراء.',
+      updateMeal: 'تحديث الوجبة',
     },
     
     // Body Metrics

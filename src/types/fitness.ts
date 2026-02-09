@@ -111,6 +111,9 @@ export interface Goals {
   targetBodyFat?: number;
   targetMuscleMass?: number;
   dailyWaterGlasses?: number;
+  dailyProtein?: number;
+  dailyCarbs?: number;
+  dailyFats?: number;
 }
 
 export interface UserSettings {

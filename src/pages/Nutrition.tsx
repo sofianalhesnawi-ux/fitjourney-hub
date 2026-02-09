@@ -6,8 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Apple, Coffee, Sun, Moon, Cookie, Trash2, ChevronLeft, ChevronRight, Droplets, TrendingUp, Utensils, Target } from 'lucide-react';
+import { Plus, Apple, Coffee, Sun, Moon, Cookie, Trash2, ChevronLeft, ChevronRight, Droplets, TrendingUp, Utensils, Target, Pencil, Settings2 } from 'lucide-react';
 import { cn, generateId, formatDate, getToday } from '@/lib/utils';
 import type { Meal, FoodItem } from '@/types/fitness';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, ReferenceLine, Cell } from 'recharts';
@@ -23,13 +24,17 @@ const MEAL_COLORS = {
 };
 
 export default function Nutrition() {
-  const { data, addMeal, deleteMeal, addFrequentFood, addWaterEntry, updateWaterEntry, t, isRTL } = useFitTrack();
+  const { data, addMeal, updateMeal, deleteMeal, addFrequentFood, addWaterEntry, updateWaterEntry, updateGoals, t, isRTL } = useFitTrack();
   const [selectedDate, setSelectedDate] = useState(getToday());
   const [isAddMealOpen, setIsAddMealOpen] = useState(false);
   const [mealType, setMealType] = useState<Meal['type']>('breakfast');
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
   const [currentFood, setCurrentFood] = useState({ name: '', calories: '', protein: '', carbs: '', fats: '', servingSize: '' });
   const [showCelebration, setShowCelebration] = useState(false);
+  const [editingMeal, setEditingMeal] = useState<Meal | null>(null);
+  const [deletingMealId, setDeletingMealId] = useState<string | null>(null);
+  const [isMacroGoalsOpen, setIsMacroGoalsOpen] = useState(false);
+  const [macroGoalsForm, setMacroGoalsForm] = useState({ protein: '', carbs: '', fats: '' });
 
   const MEAL_LABELS = { breakfast: t.nutrition.breakfast, lunch: t.nutrition.lunch, dinner: t.nutrition.dinner, snack: t.nutrition.snack };
 
@@ -73,10 +78,31 @@ export default function Nutrition() {
     return days;
   }, [data.meals, isRTL]);
 
-  // Macro goals (simple proportional defaults)
-  const proteinGoal = Math.round((calorieGoal * 0.3) / 4);
-  const carbsGoal = Math.round((calorieGoal * 0.45) / 4);
-  const fatsGoal = Math.round((calorieGoal * 0.25) / 9);
+  // Macro goals - use custom if set, else proportional defaults
+  const defaultProteinGoal = Math.round((calorieGoal * 0.3) / 4);
+  const defaultCarbsGoal = Math.round((calorieGoal * 0.45) / 4);
+  const defaultFatsGoal = Math.round((calorieGoal * 0.25) / 9);
+  const proteinGoal = data.goals.dailyProtein || defaultProteinGoal;
+  const carbsGoal = data.goals.dailyCarbs || defaultCarbsGoal;
+  const fatsGoal = data.goals.dailyFats || defaultFatsGoal;
+
+  const openMacroGoals = () => {
+    setMacroGoalsForm({
+      protein: (data.goals.dailyProtein || '').toString(),
+      carbs: (data.goals.dailyCarbs || '').toString(),
+      fats: (data.goals.dailyFats || '').toString(),
+    });
+    setIsMacroGoalsOpen(true);
+  };
+
+  const saveMacroGoals = () => {
+    updateGoals({
+      dailyProtein: parseInt(macroGoalsForm.protein) || undefined,
+      dailyCarbs: parseInt(macroGoalsForm.carbs) || undefined,
+      dailyFats: parseInt(macroGoalsForm.fats) || undefined,
+    });
+    setIsMacroGoalsOpen(false);
+  };
 
   const navigateDate = (direction: 'prev' | 'next') => { const date = new Date(selectedDate); date.setDate(date.getDate() + (direction === 'next' ? 1 : -1)); setSelectedDate(date.toISOString().split('T')[0]); };
   
@@ -92,14 +118,42 @@ export default function Nutrition() {
   
   const saveMeal = () => { 
     if (foodItems.length === 0) return; 
-    const isFirstMealToday = todaysMeals.length === 0;
-    const meal: Meal = { id: generateId(), type: mealType, items: foodItems, date: selectedDate, createdAt: new Date().toISOString() }; 
-    addMeal(meal); 
+    if (editingMeal) {
+      updateMeal({ ...editingMeal, type: mealType, items: foodItems });
+      setEditingMeal(null);
+    } else {
+      const isFirstMealToday = todaysMeals.length === 0;
+      const meal: Meal = { id: generateId(), type: mealType, items: foodItems, date: selectedDate, createdAt: new Date().toISOString() }; 
+      addMeal(meal);
+      if (isFirstMealToday && selectedDate === getToday()) {
+        setShowCelebration(true);
+      }
+    }
     setIsAddMealOpen(false); 
     setFoodItems([]); 
     setMealType('breakfast');
-    if (isFirstMealToday && selectedDate === getToday()) {
-      setShowCelebration(true);
+  };
+
+  const startEditMeal = (meal: Meal) => {
+    setEditingMeal(meal);
+    setMealType(meal.type);
+    setFoodItems([...meal.items]);
+    setIsAddMealOpen(true);
+  };
+
+  const handleCloseMealDialog = (open: boolean) => {
+    if (!open) {
+      setEditingMeal(null);
+      setFoodItems([]);
+      setMealType('breakfast');
+    }
+    setIsAddMealOpen(open);
+  };
+
+  const confirmDeleteMeal = () => {
+    if (deletingMealId) {
+      deleteMeal(deletingMealId);
+      setDeletingMealId(null);
     }
   };
   
@@ -204,7 +258,14 @@ export default function Nutrition() {
         {/* Macro Bars */}
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}>
           <Card className="bg-card/60 backdrop-blur-xl border-white/10 dark:border-white/5 h-full">
-            <CardHeader className="pb-2"><CardTitle className="text-lg">{t.nutrition.macros}</CardTitle></CardHeader>
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">{t.nutrition.macros}</CardTitle>
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={openMacroGoals}>
+                  <Settings2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardHeader>
             <CardContent className="space-y-4">
               {[
                 { name: t.dashboard.protein, current: totals.protein, goal: proteinGoal, color: 'bg-chart-1' },
@@ -307,10 +368,10 @@ export default function Nutrition() {
 
       {/* Add Meal Button */}
       <div className="flex justify-end">
-        <Dialog open={isAddMealOpen} onOpenChange={setIsAddMealOpen}>
+        <Dialog open={isAddMealOpen} onOpenChange={handleCloseMealDialog}>
           <DialogTrigger asChild><Button><Plus className="h-4 w-4 me-2" />{t.nutrition.addMeal}</Button></DialogTrigger>
           <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
-            <DialogHeader><DialogTitle>{t.nutrition.addMeal}</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>{editingMeal ? t.nutrition.editMeal : t.nutrition.addMeal}</DialogTitle></DialogHeader>
             <div className="space-y-4 mt-4">
               <div>
                 <Label>{t.nutrition.mealType}</Label>
@@ -379,7 +440,7 @@ export default function Nutrition() {
                 )}
               </AnimatePresence>
 
-              <Button onClick={saveMeal} className="w-full" disabled={foodItems.length === 0}>{t.nutrition.saveMeal}</Button>
+              <Button onClick={saveMeal} className="w-full" disabled={foodItems.length === 0}>{editingMeal ? t.nutrition.updateMeal : t.nutrition.saveMeal}</Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -426,9 +487,10 @@ export default function Nutrition() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between">
                               <h3 className="font-semibold">{MEAL_LABELS[meal.type]}</h3>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-1">
                                 <span className="text-sm font-bold">{mealCalories} {t.common.kcal}</span>
-                                <Button size="icon" variant="ghost" onClick={() => deleteMeal(meal.id)} className="h-8 w-8"><Trash2 className="h-3.5 w-3.5" /></Button>
+                                <Button size="icon" variant="ghost" onClick={() => startEditMeal(meal)} className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button>
+                                <Button size="icon" variant="ghost" onClick={() => setDeletingMealId(meal.id)} className="h-8 w-8 text-destructive hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></Button>
                               </div>
                             </div>
                             <div className="mt-1.5 space-y-1">
@@ -463,6 +525,42 @@ export default function Nutrition() {
           </TabsContent>
         ))}
       </Tabs>
+
+      {/* Macro Goals Dialog */}
+      <Dialog open={isMacroGoalsOpen} onOpenChange={setIsMacroGoalsOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>{t.nutrition.editMacroGoals}</DialogTitle></DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div>
+              <Label>{t.nutrition.proteinGoal} ({t.common.g})</Label>
+              <Input type="number" placeholder={String(defaultProteinGoal)} value={macroGoalsForm.protein} onChange={(e) => setMacroGoalsForm({ ...macroGoalsForm, protein: e.target.value })} />
+            </div>
+            <div>
+              <Label>{t.nutrition.carbsGoal} ({t.common.g})</Label>
+              <Input type="number" placeholder={String(defaultCarbsGoal)} value={macroGoalsForm.carbs} onChange={(e) => setMacroGoalsForm({ ...macroGoalsForm, carbs: e.target.value })} />
+            </div>
+            <div>
+              <Label>{t.nutrition.fatsGoal} ({t.common.g})</Label>
+              <Input type="number" placeholder={String(defaultFatsGoal)} value={macroGoalsForm.fats} onChange={(e) => setMacroGoalsForm({ ...macroGoalsForm, fats: e.target.value })} />
+            </div>
+            <Button onClick={saveMacroGoals} className="w-full">{t.nutrition.saveGoals}</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Meal Confirmation */}
+      <AlertDialog open={!!deletingMealId} onOpenChange={(open) => !open && setDeletingMealId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t.nutrition.deleteMealTitle}</AlertDialogTitle>
+            <AlertDialogDescription>{t.nutrition.deleteMealDesc}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t.common.cancel}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteMeal} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">{t.common.delete}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </motion.div>
   );
 }
