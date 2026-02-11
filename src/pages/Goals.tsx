@@ -5,10 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-import { Target, Scale, Flame, Dumbbell, Activity, Check, Sparkles, Trophy } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Target, Scale, Flame, Dumbbell, Activity, Check, Sparkles, Trophy, Calculator, User } from 'lucide-react';
 import { getWeekStart } from '@/lib/utils';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { GoalCompleteCelebration } from '@/components/Celebration';
+import { calculateBMR, calculateTDEE, calculateCalorieTarget, type ActivityLevel } from '@/lib/fitness-calculations';
 
 export default function Goals() {
   const { data, updateGoals, t } = useFitTrack();
@@ -17,6 +19,11 @@ export default function Goals() {
   const [weeklyWorkouts, setWeeklyWorkouts] = useState(data.goals.weeklyWorkouts?.toString() || '');
   const [targetBodyFat, setTargetBodyFat] = useState(data.goals.targetBodyFat?.toString() || '');
   const [targetMuscleMass, setTargetMuscleMass] = useState(data.goals.targetMuscleMass?.toString() || '');
+  const [height, setHeight] = useState(data.goals.height?.toString() || '');
+  const [age, setAge] = useState(data.goals.age?.toString() || '');
+  const [gender, setGender] = useState<'male' | 'female'>(data.goals.gender || 'male');
+  const [activityLevel, setActivityLevel] = useState<ActivityLevel>(data.goals.activityLevel || 'moderate');
+  const [weeklyWeightChange, setWeeklyWeightChange] = useState(data.goals.weeklyWeightChange?.toString() || '0');
 
   const currentWeight = [...data.weightEntries].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]?.weight;
   const weekStart = getWeekStart();
@@ -36,11 +43,25 @@ export default function Goals() {
       dailyCalories: dailyCalories ? parseInt(dailyCalories) : undefined, 
       weeklyWorkouts: weeklyWorkouts ? parseInt(weeklyWorkouts) : undefined, 
       targetBodyFat: targetBodyFat ? parseFloat(targetBodyFat) : undefined, 
-      targetMuscleMass: targetMuscleMass ? parseFloat(targetMuscleMass) : undefined 
+      targetMuscleMass: targetMuscleMass ? parseFloat(targetMuscleMass) : undefined,
+      height: height ? parseFloat(height) : undefined,
+      age: age ? parseInt(age) : undefined,
+      gender,
+      activityLevel,
+      weeklyWeightChange: weeklyWeightChange ? parseFloat(weeklyWeightChange) : undefined,
     });
     setSavedGoalName('Goals Updated Successfully!');
     setShowCelebration(true);
   };
+
+  // Calculate BMR & TDEE
+  const bmr = height && age && currentWeight
+    ? calculateBMR(currentWeight, parseFloat(height), parseInt(age), gender)
+    : 0;
+  const tdee = bmr ? calculateTDEE(bmr, activityLevel) : 0;
+  const recommendedCalories = tdee
+    ? calculateCalorieTarget(tdee, parseFloat(weeklyWeightChange || '0'))
+    : 0;
 
   const calculateWeightProgress = () => { 
     if (!currentWeight || !data.goals.targetWeight) return null; 
@@ -286,6 +307,120 @@ export default function Goals() {
               <Sparkles className="h-4 w-4 me-2" />
               {t.goals.saveGoals}
             </Button>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Personal Info Section */}
+      <motion.div variants={item}>
+        <Card className="overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-accent/5 to-transparent">
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5 text-accent" />
+              {t.goals.personalInfo}
+            </CardTitle>
+            <CardDescription>{t.goals.personalInfoDesc}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6 pt-6">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="space-y-2">
+                <Label htmlFor="height">{t.goals.height}</Label>
+                <Input id="height" type="number" placeholder="170" value={height} onChange={(e) => setHeight(e.target.value)} className="h-11" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="age">{t.goals.age}</Label>
+                <Input id="age" type="number" placeholder="25" value={age} onChange={(e) => setAge(e.target.value)} className="h-11" />
+              </div>
+              <div className="space-y-2">
+                <Label>{t.goals.gender}</Label>
+                <Select value={gender} onValueChange={(v) => setGender(v as 'male' | 'female')}>
+                  <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">{t.goals.male}</SelectItem>
+                    <SelectItem value="female">{t.goals.female}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>{t.goals.activityLevel}</Label>
+                <Select value={activityLevel} onValueChange={(v) => setActivityLevel(v as ActivityLevel)}>
+                  <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="sedentary">{t.goals.sedentary}</SelectItem>
+                    <SelectItem value="light">{t.goals.light}</SelectItem>
+                    <SelectItem value="moderate">{t.goals.moderate}</SelectItem>
+                    <SelectItem value="active">{t.goals.active}</SelectItem>
+                    <SelectItem value="very_active">{t.goals.veryActive}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {bmr > 0 && (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="p-4 rounded-xl bg-muted">
+                  <p className="text-sm text-muted-foreground">{t.goals.bmr}</p>
+                  <p className="text-2xl font-bold">{bmr} <span className="text-sm font-normal text-muted-foreground">{t.common.kcal}</span></p>
+                </div>
+                <div className="p-4 rounded-xl bg-primary/10">
+                  <p className="text-sm text-muted-foreground">{t.goals.tdee}</p>
+                  <p className="text-2xl font-bold text-primary">{tdee} <span className="text-sm font-normal text-muted-foreground">{t.common.kcal}</span></p>
+                </div>
+              </div>
+            )}
+
+            <Button onClick={saveGoals} variant="outline" className="w-full sm:w-auto">
+              <Sparkles className="h-4 w-4 me-2" />
+              {t.goals.saveGoals}
+            </Button>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Calorie Calculator */}
+      <motion.div variants={item}>
+        <Card className="overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-warning/5 to-transparent">
+            <CardTitle className="flex items-center gap-2">
+              <Calculator className="h-5 w-5 text-warning" />
+              {t.goals.calorieCalculator}
+            </CardTitle>
+            <CardDescription>{t.goals.calorieCalcDesc}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6 pt-6">
+            {tdee > 0 ? (
+              <>
+                <div className="space-y-2">
+                  <Label>{t.goals.weeklyGoal}</Label>
+                  <Select value={weeklyWeightChange} onValueChange={setWeeklyWeightChange}>
+                    <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="-1">{t.goals.lose1kg}</SelectItem>
+                      <SelectItem value="-0.5">{t.goals.lose05kg}</SelectItem>
+                      <SelectItem value="0">{t.goals.maintain}</SelectItem>
+                      <SelectItem value="0.5">{t.goals.gain05kg}</SelectItem>
+                      <SelectItem value="1">{t.goals.gain1kg}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="p-6 rounded-xl bg-gradient-to-br from-warning/10 to-primary/10 border border-warning/20 text-center">
+                  <p className="text-sm text-muted-foreground mb-1">{t.goals.recommendedCalories}</p>
+                  <p className="text-4xl font-bold">{recommendedCalories}</p>
+                  <p className="text-sm text-muted-foreground">{t.common.kcal}</p>
+                </div>
+
+                <Button 
+                  onClick={() => { setDailyCalories(String(recommendedCalories)); saveGoals(); }}
+                  className="w-full sm:w-auto shadow-lg shadow-warning/20"
+                >
+                  <Flame className="h-4 w-4 me-2" />
+                  {t.goals.setAsGoal}
+                </Button>
+              </>
+            ) : (
+              <p className="text-muted-foreground text-center py-6">{t.goals.fillPersonalInfo}</p>
+            )}
           </CardContent>
         </Card>
       </motion.div>
