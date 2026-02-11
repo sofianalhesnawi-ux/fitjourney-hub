@@ -12,7 +12,8 @@ import {
   TrendingDown,
   Trophy,
   Calendar,
-  Target
+  Target,
+  Activity
 } from 'lucide-react';
 import { getWeekStart, getMonthStart, formatDate } from '@/lib/utils';
 import { 
@@ -22,9 +23,13 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  ResponsiveContainer 
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  Legend
 } from 'recharts';
 import { motion } from 'framer-motion';
+import { calculateFatMass, calculateLeanMass } from '@/lib/fitness-calculations';
 
 export default function Reports() {
   const { data, t, isRTL } = useFitTrack();
@@ -306,6 +311,89 @@ export default function Reports() {
                   />
                 </BarChart>
               </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          {/* Body Composition Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5" />
+                {t.reports.bodyComposition}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {(() => {
+                // Build composition data from bodyCompositions + weightEntries
+                const compositionData = data.bodyCompositions
+                  .filter(c => c.bodyFat != null)
+                  .map(comp => {
+                    const weight = data.weightEntries
+                      .filter(w => w.date <= comp.date)
+                      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]?.weight;
+                    if (!weight) return null;
+                    return {
+                      date: new Date(comp.date).toLocaleDateString(isRTL ? 'ar' : 'en', { month: 'short', day: 'numeric' }),
+                      fatMass: calculateFatMass(weight, comp.bodyFat!),
+                      leanMass: calculateLeanMass(weight, comp.bodyFat!),
+                      muscleMass: comp.muscleMass || undefined,
+                    };
+                  })
+                  .filter(Boolean)
+                  .sort((a, b) => new Date(a!.date).getTime() - new Date(b!.date).getTime());
+
+                if (compositionData.length === 0) {
+                  return (
+                    <p className="text-muted-foreground text-center py-8">
+                      {t.reports.noCompositionData}
+                    </p>
+                  );
+                }
+
+                return (
+                  <ResponsiveContainer width="100%" height={280}>
+                    <LineChart data={compositionData}>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                      <XAxis dataKey="date" tick={{ fontSize: 12 }} reversed={isRTL} />
+                      <YAxis tick={{ fontSize: 12 }} unit=" kg" />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'hsl(var(--card))',
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '8px'
+                        }}
+                      />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="fatMass"
+                        name={t.reports.fatMass}
+                        stroke="hsl(var(--destructive))"
+                        strokeWidth={2}
+                        dot={{ r: 4 }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="leanMass"
+                        name={t.reports.leanMass}
+                        stroke="hsl(var(--primary))"
+                        strokeWidth={2}
+                        dot={{ r: 4 }}
+                      />
+                      {compositionData.some(d => d?.muscleMass) && (
+                        <Line
+                          type="monotone"
+                          dataKey="muscleMass"
+                          name={t.metrics.muscleMass}
+                          stroke="hsl(var(--success))"
+                          strokeWidth={2}
+                          dot={{ r: 4 }}
+                        />
+                      )}
+                    </LineChart>
+                  </ResponsiveContainer>
+                );
+              })()}
             </CardContent>
           </Card>
 

@@ -114,6 +114,11 @@ export interface Goals {
   dailyProtein?: number;
   dailyCarbs?: number;
   dailyFats?: number;
+  height?: number;
+  age?: number;
+  gender?: 'male' | 'female';
+  activityLevel?: 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
+  weeklyWeightChange?: number; // kg per week, negative for loss
 }
 
 export interface UserSettings {
