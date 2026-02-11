@@ -36,6 +36,7 @@ import { AnimatedChartContainer, AnimatedNumber } from '@/components/AnimatedCha
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { StreakCounter } from '@/components/StreakCounter';
 import { PersonalBestBadge } from '@/components/PersonalBestBadge';
+import { MotivationalNotifications } from '@/components/MotivationalNotifications';
 
 const CHART_COLORS = [
   'hsl(var(--chart-1))',
@@ -571,6 +572,8 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </motion.div>
+
+      <MotivationalNotifications />
     </motion.div>
   );
 }

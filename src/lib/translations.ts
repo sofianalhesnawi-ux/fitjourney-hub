@@ -297,6 +297,18 @@ export const translations = {
       setAsGoal: 'Set as Calorie Goal',
       fillPersonalInfo: 'Fill in your personal info above first',
     },
+
+    // Motivational
+    motivational: {
+      goalReached: 'You reached your weekly workout goal! Amazing!',
+      oneWorkoutLeft: 'Just 1 workout away from your weekly goal! Go for it!',
+      twoWorkoutsLeft: 'Only 2 workouts left to hit your weekly target!',
+      caloriesAlmostDone: 'Almost at your calorie goal for today! Keep it up!',
+      caloriesReached: 'You hit your daily calorie target! Well done!',
+      weightAlmostThere: "You're so close to your weight goal!",
+      weightGoalReached: 'You reached your target weight! Incredible achievement!',
+      greatStreak: '3+ workouts this week! You\'re on fire!',
+    },
     
     // Reports
     reports: {
@@ -672,6 +684,18 @@ export const translations = {
       recommendedCalories: 'السعرات اليومية الموصى بها',
       setAsGoal: 'تعيين كهدف سعرات',
       fillPersonalInfo: 'أكمل معلوماتك الشخصية أولاً',
+    },
+
+    // Motivational
+    motivational: {
+      goalReached: 'حققت هدف التمارين الأسبوعي! رائع!',
+      oneWorkoutLeft: 'تمرين واحد فقط يفصلك عن هدفك الأسبوعي! هيا!',
+      twoWorkoutsLeft: 'تمرينان فقط لتحقيق هدفك الأسبوعي!',
+      caloriesAlmostDone: 'قاربت على تحقيق هدف السعرات اليوم! استمر!',
+      caloriesReached: 'حققت هدف السعرات اليومي! أحسنت!',
+      weightAlmostThere: 'أنت قريب جداً من هدف الوزن!',
+      weightGoalReached: 'حققت الوزن المستهدف! إنجاز مذهل!',
+      greatStreak: '3+ تمارين هذا الأسبوع! أنت مشتعل!',
     },
     
     // Reports
